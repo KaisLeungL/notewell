@@ -1,5 +1,5 @@
 /**
- * notewell CLI entry point.
+ * llm-wiki CLI entry point.
  *
  * v0.1 only wires up `buildHelpText` and a stub dispatcher. Actual command
  * implementations land in later tasks (init, index, search, lint, log,
@@ -13,27 +13,27 @@ const VERSION = "0.0.1";
 
 const COMMANDS = [
   {
-    name: "notewell init",
-    summary: "Initialize a new vault (raw/, wiki/, schema/, .notewell/).",
+    name: "llm-wiki init",
+    summary: "Initialize a new vault (raw/, wiki/, schema/, .llm-wiki/).",
   },
   {
-    name: "notewell index",
-    summary: "Rebuild the JSON index under .notewell/.",
+    name: "llm-wiki index",
+    summary: "Rebuild the JSON index under .llm-wiki/.",
   },
   {
-    name: "notewell search",
+    name: "llm-wiki search",
     summary: "Search the JSON index and explain why each result matched.",
   },
   {
-    name: "notewell lint",
+    name: "llm-wiki lint",
     summary: "Check the vault for broken links, missing frontmatter, orphans.",
   },
   {
-    name: "notewell log",
+    name: "llm-wiki log",
     summary: "Append a structured entry to wiki/log.md.",
   },
   {
-    name: "notewell doctor",
+    name: "llm-wiki doctor",
     summary: "Verify directory structure, schema files, and index freshness.",
   },
 ] as const;
@@ -44,10 +44,10 @@ export function buildHelpText(): string {
     0,
   );
   const lines: string[] = [
-    `notewell v${VERSION} - a lightweight Markdown-first personal LLM wiki`,
+    `llm-wiki v${VERSION} - a lightweight Markdown-first personal LLM wiki`,
     "",
     "Usage:",
-    "  notewell <command> [options] [path]",
+    "  llm-wiki <command> [options] [path]",
     "",
     "Commands:",
   ];
@@ -82,13 +82,13 @@ export function run(argv: string[]): number {
 
   const known = new Set(COMMANDS.map((c) => c.name.split(" ")[1]));
   if (!known.has(command)) {
-    process.stderr.write(`notewell: unknown command "${command}"\n\n`);
+    process.stderr.write(`llm-wiki: unknown command "${command}"\n\n`);
     process.stdout.write(`${buildHelpText()}\n`);
     return 1;
   }
 
   process.stderr.write(
-    `notewell: command "${command}" is not implemented yet (v0.1 scaffold).\n`,
+    `llm-wiki: command "${command}" is not implemented yet (v0.1 scaffold).\n`,
   );
   return 2;
 }
