@@ -12,6 +12,7 @@ import process from "node:process";
 import { buildIndex } from "./core/indexer.js";
 import { initVault } from "./core/init.js";
 import { lintVault } from "./core/lint.js";
+import { appendLogEntry } from "./core/log.js";
 import { searchIndex } from "./core/search.js";
 
 const VERSION = "0.0.1";
@@ -139,6 +140,21 @@ export function run(argv: string[]): number {
     return findings.some((finding) => finding.severity === "error") ? 1 : 0;
   }
 
+  if (command === "log") {
+    const parsed = parseLogArgs(argv.slice(1));
+    if (!parsed.message) {
+      process.stderr.write("notewell: log requires a message\n");
+      return 1;
+    }
+    const entry = appendLogEntry(
+      parsed.vaultDir,
+      parsed.message,
+      parsed.type ? { type: parsed.type } : {},
+    );
+    process.stdout.write(entry);
+    return 0;
+  }
+
   process.stderr.write(
     `notewell: command "${command}" is not implemented yet (v0.1 scaffold).\n`,
   );
@@ -152,4 +168,20 @@ const isDirectInvocation =
 if (isDirectInvocation) {
   const code = run(process.argv.slice(2));
   process.exit(code);
+}
+
+function parseLogArgs(args: string[]): {
+  message: string | null;
+  type: string | undefined;
+  vaultDir: string;
+} {
+  let type: string | undefined;
+  const remaining = [...args];
+  if (remaining[0] === "--type") {
+    type = remaining[1];
+    remaining.splice(0, 2);
+  }
+  const message = remaining[0] ?? null;
+  const vaultDir = remaining[1] ?? process.cwd();
+  return { message, type, vaultDir };
 }
