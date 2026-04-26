@@ -49,3 +49,10 @@ export type SearchResult = {
   score: number;
   reasons: string[];
 };
+
+export type LintFinding = {
+  severity: "error" | "warning";
+  code: string;
+  path: string;
+  message: string;
+};

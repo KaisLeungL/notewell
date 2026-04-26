@@ -11,6 +11,7 @@ import process from "node:process";
 
 import { buildIndex } from "./core/indexer.js";
 import { initVault } from "./core/init.js";
+import { lintVault } from "./core/lint.js";
 import { searchIndex } from "./core/search.js";
 
 const VERSION = "0.0.1";
@@ -125,6 +126,17 @@ export function run(argv: string[]): number {
       );
     }
     return 0;
+  }
+
+  if (command === "lint") {
+    const vaultDir = argv[1] ?? process.cwd();
+    const findings = lintVault(vaultDir);
+    for (const finding of findings) {
+      process.stdout.write(
+        `${finding.severity}\t${finding.code}\t${finding.path}\t${finding.message}\n`,
+      );
+    }
+    return findings.some((finding) => finding.severity === "error") ? 1 : 0;
   }
 
   process.stderr.write(
