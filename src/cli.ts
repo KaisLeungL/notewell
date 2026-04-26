@@ -11,6 +11,7 @@ import process from "node:process";
 
 import { buildIndex } from "./core/indexer.js";
 import { initVault } from "./core/init.js";
+import { searchIndex } from "./core/search.js";
 
 const VERSION = "0.0.1";
 
@@ -107,6 +108,22 @@ export function run(argv: string[]): number {
     process.stdout.write(
       `Indexed ${index.pages.length} pages into ${vaultDir}/.notewell\n`,
     );
+    return 0;
+  }
+
+  if (command === "search") {
+    const query = argv[1];
+    if (!query) {
+      process.stderr.write("notewell: search requires a query\n");
+      return 1;
+    }
+    const vaultDir = argv[2] ?? process.cwd();
+    const results = searchIndex(vaultDir, query);
+    for (const result of results) {
+      process.stdout.write(
+        `${result.slug}\t${result.score}\t${result.reasons.join(", ")}\t${result.title}\n`,
+      );
+    }
     return 0;
   }
 

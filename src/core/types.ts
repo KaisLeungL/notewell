@@ -40,3 +40,12 @@ export type WikiIndex = {
   pages: IndexRecord[];
   generated_at: string;
 };
+
+export type SearchResult = {
+  slug: string;
+  path: string;
+  title: string;
+  summary: string | null;
+  score: number;
+  reasons: string[];
+};
