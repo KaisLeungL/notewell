@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+.vitest-cache/
+.nyc_output/
+
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Local notewell test vaults (do not commit user data)
+/tmp-vault/
+/scratch/
