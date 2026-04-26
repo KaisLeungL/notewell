@@ -21,3 +21,22 @@ export type ParsedMarkdown = {
   tags: string[];
   parseError?: string;
 };
+
+export type IndexRecord = {
+  slug: string;
+  path: string;
+  title: string;
+  summary: string | null;
+  type: string | null;
+  domain: string | null;
+  tags: string[];
+  links: string[];
+  backlinks: string[];
+  updated_at: string;
+  hash: string;
+};
+
+export type WikiIndex = {
+  pages: IndexRecord[];
+  generated_at: string;
+};

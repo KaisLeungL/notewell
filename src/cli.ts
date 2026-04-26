@@ -9,6 +9,7 @@
 import { fileURLToPath } from "node:url";
 import process from "node:process";
 
+import { buildIndex } from "./core/indexer.js";
 import { initVault } from "./core/init.js";
 
 const VERSION = "0.0.1";
@@ -96,6 +97,15 @@ export function run(argv: string[]): number {
       `Initialized notewell vault at ${vaultDir}\n` +
         `Created: ${result.created.length}\n` +
         `Skipped: ${result.skipped.length}\n`,
+    );
+    return 0;
+  }
+
+  if (command === "index") {
+    const vaultDir = argv[1] ?? process.cwd();
+    const index = buildIndex(vaultDir);
+    process.stdout.write(
+      `Indexed ${index.pages.length} pages into ${vaultDir}/.notewell\n`,
     );
     return 0;
   }
