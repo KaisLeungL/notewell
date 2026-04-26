@@ -10,7 +10,7 @@ import {
 
 describe("paths", () => {
   test("declares required vault directories", () => {
-    expect(requiredVaultDirs()).toEqual(["raw", "wiki", "schema", ".llm-wiki"]);
+    expect(requiredVaultDirs()).toEqual(["raw", "wiki", "schema", ".notewell"]);
   });
 
   test("converts wiki paths to slugs", () => {

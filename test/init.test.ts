@@ -9,7 +9,7 @@ import { initVault } from "../src/core/init.js";
 const createdTempDirs: string[] = [];
 
 function createTempDir(): string {
-  const dir = mkdtempSync(path.join(tmpdir(), "llm-wiki-init-"));
+  const dir = mkdtempSync(path.join(tmpdir(), "notewell-init-"));
   createdTempDirs.push(dir);
   return dir;
 }
@@ -31,7 +31,7 @@ describe("initVault", () => {
         "raw",
         "wiki",
         "schema",
-        ".llm-wiki",
+        ".notewell",
         "wiki/index.md",
         "wiki/log.md",
         "schema/AGENTS.md",
