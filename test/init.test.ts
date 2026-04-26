@@ -1,4 +1,10 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -55,5 +61,86 @@ describe("initVault", () => {
 
     expect(readFileSync(indexPath, "utf8")).toBe("custom index\n");
     expect(result.skipped).toContain("wiki/index.md");
+  });
+
+  test("creates Claude skills when requested", () => {
+    const vaultDir = createTempDir();
+
+    const result = initVault(vaultDir, { agents: ["claude"] });
+
+    const skillPaths = [
+      ".claude/skills/notewell-ingest/SKILL.md",
+      ".claude/skills/notewell-query/SKILL.md",
+      ".claude/skills/notewell-lint/SKILL.md",
+    ];
+    expect(result.created).toEqual(expect.arrayContaining(skillPaths));
+    for (const skillPath of skillPaths) {
+      expect(existsSync(path.join(vaultDir, skillPath))).toBe(true);
+    }
+    expect(
+      readFileSync(
+        path.join(vaultDir, ".claude/skills/notewell-ingest/SKILL.md"),
+        "utf8",
+      ),
+    ).toContain("notewell-ingest");
+    expect(
+      readFileSync(
+        path.join(vaultDir, ".claude/skills/notewell-query/SKILL.md"),
+        "utf8",
+      ),
+    ).toContain("notewell-query");
+    expect(
+      readFileSync(
+        path.join(vaultDir, ".claude/skills/notewell-lint/SKILL.md"),
+        "utf8",
+      ),
+    ).toContain("notewell-lint");
+  });
+
+  test("creates independent skill directories for multiple agents", () => {
+    const vaultDir = createTempDir();
+
+    const result = initVault(vaultDir, {
+      agents: ["claude", "cursor", "codex"],
+    });
+
+    expect(result.created).toEqual(
+      expect.arrayContaining([
+        ".claude/skills/notewell-query/SKILL.md",
+        ".cursor/skills/notewell-query/SKILL.md",
+        ".codex/skills/notewell-query/SKILL.md",
+      ]),
+    );
+    expect(
+      existsSync(
+        path.join(vaultDir, ".claude/skills/notewell-query/SKILL.md"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        path.join(vaultDir, ".cursor/skills/notewell-query/SKILL.md"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(path.join(vaultDir, ".codex/skills/notewell-query/SKILL.md")),
+    ).toBe(true);
+  });
+
+  test("does not overwrite existing agent skill files", () => {
+    const vaultDir = createTempDir();
+    const skillPath = path.join(
+      vaultDir,
+      ".cursor",
+      "skills",
+      "notewell-query",
+      "SKILL.md",
+    );
+    initVault(vaultDir, { agents: ["cursor"] });
+    writeFileSync(skillPath, "custom query skill\n", "utf8");
+
+    const result = initVault(vaultDir, { agents: ["cursor"] });
+
+    expect(readFileSync(skillPath, "utf8")).toBe("custom query skill\n");
+    expect(result.skipped).toContain(".cursor/skills/notewell-query/SKILL.md");
   });
 });

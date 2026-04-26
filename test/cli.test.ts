@@ -1,6 +1,12 @@
-import { describe, expect, test } from "vitest";
+import { existsSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 
-import { buildHelpText } from "../src/cli.js";
+import { describe, expect, test, vi } from "vitest";
+
+import { buildHelpText, run } from "../src/cli.js";
+import { initVault } from "../src/core/init.js";
+import { indexOperation } from "../src/core/operations.js";
 
 describe("cli help", () => {
   test("prints available commands", () => {
@@ -11,5 +17,95 @@ describe("cli help", () => {
     expect(help).toContain("notewell lint");
     expect(help).toContain("notewell log");
     expect(help).toContain("notewell doctor");
+  });
+
+  test("treats query as a search command alias", async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-query-"));
+    initVault(vaultDir);
+    writeFileSync(
+      path.join(vaultDir, "wiki", "concept.md"),
+      [
+        "---",
+        "title: Query Alias",
+        "summary: Query command should trigger knowledge retrieval.",
+        "tags: [retrieval]",
+        "updated: 2026-04-27",
+        "---",
+        "",
+        "Knowledge retrieval reads the indexed wiki.",
+      ].join("\n"),
+      "utf8",
+    );
+    indexOperation(vaultDir);
+    let stdout = "";
+    let stderr = "";
+    const stdoutSpy = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation((chunk: string | Uint8Array) => {
+        stdout += chunk.toString();
+        return true;
+      });
+    const stderrSpy = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation((chunk: string | Uint8Array) => {
+        stderr += chunk.toString();
+        return true;
+      });
+
+    try {
+      const code = await run(["query", "retrieval", vaultDir]);
+
+      expect(code).toBe(0);
+      expect(stdout).toContain("wiki/concept");
+      expect(stderr).not.toContain("unknown command");
+    } finally {
+      stdoutSpy.mockRestore();
+      stderrSpy.mockRestore();
+    }
+  });
+
+  test("initializes selected agent skill adapters", async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-agents-"));
+
+    const code = await run([
+      "init",
+      "--agent",
+      "claude",
+      "--agent",
+      "cursor",
+      vaultDir,
+    ]);
+
+    expect(code).toBe(0);
+    expect(
+      existsSync(
+        path.join(vaultDir, ".claude/skills/notewell-query/SKILL.md"),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        path.join(vaultDir, ".cursor/skills/notewell-query/SKILL.md"),
+      ),
+    ).toBe(true);
+  });
+
+  test("rejects unknown agent adapters", async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-agent-"));
+    let stderr = "";
+    const stderrSpy = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation((chunk: string | Uint8Array) => {
+        stderr += chunk.toString();
+        return true;
+      });
+
+    try {
+      const code = await run(["init", "--agent", "unknown", vaultDir]);
+
+      expect(code).toBe(1);
+      expect(stderr).toContain("unknown agent");
+    } finally {
+      stderrSpy.mockRestore();
+    }
   });
 });

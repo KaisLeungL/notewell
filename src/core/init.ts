@@ -15,19 +15,51 @@ export type InitVaultResult = {
   skipped: string[];
 };
 
-const TEMPLATE_FILES = [
-  "schema/AGENTS.md",
-  "schema/CLAUDE.md",
-  "schema/ingestion.md",
-  "schema/query.md",
-  "schema/maintenance.md",
-  "schema/taxonomy.md",
-  "schema/writing-style.md",
-  "wiki/index.md",
-  "wiki/log.md",
-] as const;
+export type AgentAdapter = "claude" | "cursor" | "codex";
 
-export function initVault(vaultDir: string): InitVaultResult {
+export type InitVaultOptions = {
+  agents?: AgentAdapter[];
+};
+
+type TemplateFile = {
+  target: string;
+  template: string;
+};
+
+const TEMPLATE_FILES: readonly TemplateFile[] = [
+  templateFile("schema/AGENTS.md"),
+  templateFile("schema/CLAUDE.md"),
+  templateFile("schema/ingestion.md"),
+  templateFile("schema/query.md"),
+  templateFile("schema/maintenance.md"),
+  templateFile("schema/taxonomy.md"),
+  templateFile("schema/writing-style.md"),
+  templateFile("wiki/index.md"),
+  templateFile("wiki/log.md"),
+];
+
+const AGENT_SKILL_FILES: Record<AgentAdapter, readonly TemplateFile[]> = {
+  claude: [
+    agentSkillFile("claude", "notewell-ingest"),
+    agentSkillFile("claude", "notewell-query"),
+    agentSkillFile("claude", "notewell-lint"),
+  ],
+  cursor: [
+    agentSkillFile("cursor", "notewell-ingest"),
+    agentSkillFile("cursor", "notewell-query"),
+    agentSkillFile("cursor", "notewell-lint"),
+  ],
+  codex: [
+    agentSkillFile("codex", "notewell-ingest"),
+    agentSkillFile("codex", "notewell-query"),
+    agentSkillFile("codex", "notewell-lint"),
+  ],
+};
+
+export function initVault(
+  vaultDir: string,
+  options: InitVaultOptions = {},
+): InitVaultResult {
   const created: string[] = [];
   const skipped: string[] = [];
 
@@ -41,18 +73,36 @@ export function initVault(vaultDir: string): InitVaultResult {
     created.push(dir);
   }
 
-  for (const relativePath of TEMPLATE_FILES) {
-    const target = path.join(vaultDir, relativePath);
+  for (const file of selectedTemplateFiles(options.agents ?? [])) {
+    const target = path.join(vaultDir, file.target);
     if (existsSync(target)) {
-      skipped.push(relativePath);
+      skipped.push(file.target);
       continue;
     }
     mkdirSync(path.dirname(target), { recursive: true });
-    writeFileSync(target, readTemplate(relativePath), "utf8");
-    created.push(relativePath);
+    writeFileSync(target, readTemplate(file.template), "utf8");
+    created.push(file.target);
   }
 
   return { created, skipped };
+}
+
+function selectedTemplateFiles(agents: AgentAdapter[]): readonly TemplateFile[] {
+  return [
+    ...TEMPLATE_FILES,
+    ...agents.flatMap((agent) => AGENT_SKILL_FILES[agent]),
+  ];
+}
+
+function templateFile(relativePath: string): TemplateFile {
+  return { target: relativePath, template: relativePath };
+}
+
+function agentSkillFile(agent: AgentAdapter, skill: string): TemplateFile {
+  return {
+    target: `.${agent}/skills/${skill}/SKILL.md`,
+    template: `agents/${agent}/skills/${skill}/SKILL.md`,
+  };
 }
 
 function readTemplate(relativePath: string): string {

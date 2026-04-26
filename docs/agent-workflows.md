@@ -1,8 +1,12 @@
 # Agent Workflows
 
-Notewell is designed for agents that can read and edit Markdown. Claude,
-OpenClaw, Cursor, and similar tools should treat `schema/AGENTS.md` as the
-entry point, then follow task-specific schema files.
+Notewell is designed for agents that can read and edit Markdown. Skills are the
+preferred agent entry point when available; initialize them with
+`notewell init --agent claude`, `notewell init --agent cursor`, or
+`notewell init --agent codex`. CLI commands are helper tools used by skills.
+
+Each selected adapter receives `notewell-ingest`, `notewell-query`, and
+`notewell-lint` skills.
 
 ## Ingestion
 
@@ -15,7 +19,10 @@ entry point, then follow task-specific schema files.
 
 ## Query Answering
 
-1. Search first with `notewell search "query" .`.
+The `notewell-query` skill has one hard rule: Search the vault before answering.
+
+1. Search first with `notewell search "query" .` or its alias
+   `notewell query "query" .`.
 2. Read the returned wiki pages and cited raw sources.
 3. Answer from evidence.
 4. If the answer should persist, update `wiki/`.

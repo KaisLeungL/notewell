@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /**
  * notewell CLI entry point.
  *
@@ -6,10 +7,11 @@
  * doctor).
  */
 
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import process from "node:process";
 
-import { initVault } from "./core/init.js";
+import { initVault, type AgentAdapter } from "./core/init.js";
 import {
   doctorOperation,
   indexOperation,
@@ -20,6 +22,7 @@ import {
 import { getSearchBackend } from "./core/search-backend.js";
 
 const VERSION = "0.0.1";
+const SUPPORTED_AGENT_ADAPTERS = ["claude", "cursor", "codex"] as const;
 
 const COMMANDS = [
   {
@@ -33,6 +36,10 @@ const COMMANDS = [
   {
     name: "notewell search",
     summary: "Search the JSON index and explain why each result matched.",
+  },
+  {
+    name: "notewell query",
+    summary: "Alias for search when answering knowledge-base questions.",
   },
   {
     name: "notewell lint",
@@ -98,10 +105,14 @@ export async function run(argv: string[]): Promise<number> {
   }
 
   if (command === "init") {
-    const vaultDir = argv[1] ?? process.cwd();
-    const result = initVault(vaultDir);
+    const parsed = parseInitArgs(argv.slice(1));
+    if (parsed.error) {
+      process.stderr.write(`notewell: ${parsed.error}\n`);
+      return 1;
+    }
+    const result = initVault(parsed.vaultDir, { agents: parsed.agents });
     process.stdout.write(
-      `Initialized notewell vault at ${vaultDir}\n` +
+      `Initialized notewell vault at ${parsed.vaultDir}\n` +
         `Created: ${result.created.length}\n` +
         `Skipped: ${result.skipped.length}\n`,
     );
@@ -120,10 +131,10 @@ export async function run(argv: string[]): Promise<number> {
     return 0;
   }
 
-  if (command === "search") {
+  if (command === "search" || command === "query") {
     const query = argv[1];
     if (!query) {
-      process.stderr.write("notewell: search requires a query\n");
+      process.stderr.write(`notewell: ${command} requires a query\n`);
       return 1;
     }
     const { vaultDir, backend } = parseDirAndBackend(argv.slice(2));
@@ -180,11 +191,64 @@ export async function run(argv: string[]): Promise<number> {
   return 2;
 }
 
-const isDirectInvocation =
-  typeof process.argv[1] === "string" &&
-  process.argv[1] === fileURLToPath(import.meta.url);
+function parseInitArgs(args: string[]): {
+  agents: AgentAdapter[];
+  vaultDir: string;
+  error: string | null;
+} {
+  const agents: AgentAdapter[] = [];
+  const remaining: string[] = [];
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i]!;
+    if (arg !== "--agent") {
+      remaining.push(arg);
+      continue;
+    }
 
-if (isDirectInvocation) {
+    const agent = args[i + 1];
+    if (!agent) {
+      return {
+        agents,
+        vaultDir: remaining[0] ?? process.cwd(),
+        error: "--agent requires a value",
+      };
+    }
+    if (!isAgentAdapter(agent)) {
+      return {
+        agents,
+        vaultDir: remaining[0] ?? process.cwd(),
+        error: `unknown agent "${agent}"`,
+      };
+    }
+    agents.push(agent);
+    i += 1;
+  }
+
+  return {
+    agents,
+    vaultDir: remaining[0] ?? process.cwd(),
+    error: null,
+  };
+}
+
+function isAgentAdapter(value: string): value is AgentAdapter {
+  return SUPPORTED_AGENT_ADAPTERS.includes(value as AgentAdapter);
+}
+
+function isDirectInvocation(): boolean {
+  if (typeof process.argv[1] !== "string") {
+    return false;
+  }
+  try {
+    const entryPath = realpathSync(process.argv[1]);
+    const modulePath = realpathSync(fileURLToPath(import.meta.url));
+    return entryPath === modulePath;
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectInvocation()) {
   run(process.argv.slice(2))
     .then((code) => process.exit(code))
     .catch((error: unknown) => {

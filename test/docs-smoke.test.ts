@@ -43,4 +43,30 @@ describe("docs", () => {
     expect(docs).toContain("wiki/analyses/");
     expect(docs).toContain("wiki/playbooks/");
   });
+
+  test("document how to run the local CLI path", () => {
+    const docs = [
+      readFileSync("README.md", "utf8"),
+      readFileSync("README.zh-CN.md", "utf8"),
+    ].join("\n");
+
+    expect(docs).toContain("Run from the project root");
+    expect(docs).toContain("从项目根目录执行");
+    expect(docs).toContain("npm link");
+  });
+
+  test("document agent skill initialization", () => {
+    const docs = [
+      readFileSync("README.md", "utf8"),
+      readFileSync("README.zh-CN.md", "utf8"),
+      readFileSync("docs/commands.md", "utf8"),
+      readFileSync("docs/agent-workflows.md", "utf8"),
+    ].join("\n");
+
+    expect(docs).toContain("notewell init --agent claude");
+    expect(docs).toContain("notewell init --agent cursor");
+    expect(docs).toContain("notewell init --agent codex");
+    expect(docs).toContain("notewell-query");
+    expect(docs).toContain("Search the vault before answering");
+  });
 });

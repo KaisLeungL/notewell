@@ -5,6 +5,19 @@
 Creates `raw/`, `wiki/`, `schema/`, `.notewell/`, starter wiki files, and schema
 files. Existing files are skipped rather than overwritten.
 
+`--agent` is repeatable and creates complete agent skills:
+
+```bash
+notewell init --agent claude ~/vault
+notewell init --agent cursor ~/vault
+notewell init --agent codex ~/vault
+notewell init --agent claude --agent cursor ~/vault
+```
+
+Each selected adapter receives `notewell-ingest`, `notewell-query`, and
+`notewell-lint` skills. Skills are the agent entry point; CLI commands are helper
+tools used by those skills.
+
 ## `notewell index [dir]`
 
 Scans `wiki/**/*.md`, parses frontmatter, extracts wikilinks, builds backlinks,
@@ -15,6 +28,7 @@ and writes `.notewell/index.json`, `.notewell/backlinks.json`, and
 
 Reads `.notewell/index.json`, ranks candidate pages, and prints matching pages
 with scores and reasons. The CLI returns evidence; the agent does synthesis.
+`notewell query "query" [dir]` is an alias for the same knowledge-base lookup.
 
 ## `notewell lint [dir]`
 
