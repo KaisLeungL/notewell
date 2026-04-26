@@ -9,6 +9,8 @@
 import { fileURLToPath } from "node:url";
 import process from "node:process";
 
+import { initVault } from "./core/init.js";
+
 const VERSION = "0.0.1";
 
 const COMMANDS = [
@@ -85,6 +87,17 @@ export function run(argv: string[]): number {
     process.stderr.write(`llm-wiki: unknown command "${command}"\n\n`);
     process.stdout.write(`${buildHelpText()}\n`);
     return 1;
+  }
+
+  if (command === "init") {
+    const vaultDir = argv[1] ?? process.cwd();
+    const result = initVault(vaultDir);
+    process.stdout.write(
+      `Initialized llm-wiki vault at ${vaultDir}\n` +
+        `Created: ${result.created.length}\n` +
+        `Skipped: ${result.skipped.length}\n`,
+    );
+    return 0;
   }
 
   process.stderr.write(
