@@ -136,4 +136,51 @@ describe("buildIndex", () => {
     expect(backlinks).not.toHaveProperty("raw/assets/architecture.png");
     expect(backlinks).not.toHaveProperty("raw/assets/spec.pdf");
   });
+
+  test("excludes relative Obsidian asset references from wiki links", () => {
+    const vaultDir = mkdtempSync(
+      path.join(tmpdir(), "notewell-relative-assets-"),
+    );
+    createdTempDirs.push(vaultDir);
+    const wikiDir = path.join(vaultDir, "wiki", "notes");
+    const assetsDir = path.join(vaultDir, "raw", "assets");
+    mkdirSync(wikiDir, { recursive: true });
+    mkdirSync(assetsDir, { recursive: true });
+
+    const architecturePath = path.join(assetsDir, "architecture.png");
+    const specPath = path.join(assetsDir, "spec.pdf");
+    writeFileSync(architecturePath, "fake nested image content");
+    writeFileSync(specPath, "fake nested pdf content");
+    writeFileSync(
+      path.join(wikiDir, "architecture.md"),
+      [
+        "# Nested Architecture",
+        "",
+        "![[../../raw/assets/architecture.png|图]]",
+        "[[../../raw/assets/spec.pdf|说明]]",
+      ].join("\n"),
+    );
+
+    const index = buildIndex(vaultDir);
+    const architecturePage = index.pages.find(
+      (page) => page.slug === "wiki/notes/architecture",
+    );
+
+    expect(index.assets.map((asset) => asset.path).sort()).toEqual([
+      "raw/assets/architecture.png",
+      "raw/assets/spec.pdf",
+    ]);
+    expect(architecturePage?.links).not.toContain(
+      "../../raw/assets/architecture.png",
+    );
+    expect(architecturePage?.links).not.toContain("../../raw/assets/spec.pdf");
+
+    const backlinks = JSON.parse(
+      readFileSync(path.join(vaultDir, ".notewell", "backlinks.json"), "utf8"),
+    ) as Record<string, string[]>;
+    expect(backlinks).not.toHaveProperty("../../raw/assets/architecture.png");
+    expect(backlinks).not.toHaveProperty("../../raw/assets/spec.pdf");
+    expect(backlinks).not.toHaveProperty("raw/assets/architecture.png");
+    expect(backlinks).not.toHaveProperty("raw/assets/spec.pdf");
+  });
 });

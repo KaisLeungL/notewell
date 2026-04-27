@@ -80,7 +80,7 @@ function buildRecord(vaultDir: string, filePath: string): IndexRecord {
     type: stringField(parsed.frontmatter.type),
     domain: stringField(parsed.frontmatter.domain),
     tags: parsed.tags,
-    links: extractWikiLinks(parsed.body),
+    links: extractWikiLinksForPage(parsed.body, relativePath),
     backlinks: [],
     updated_at:
       stringField(parsed.frontmatter.updated_at) ??
@@ -107,6 +107,10 @@ function buildBacklinks(records: IndexRecord[]): Record<string, string[]> {
 }
 
 export function extractWikiLinks(markdown: string): string[] {
+  return extractWikiLinksForPage(markdown);
+}
+
+function extractWikiLinksForPage(markdown: string, pagePath?: string): string[] {
   const links = new Set<string>();
   const pattern = /\[\[([^\]]+)\]\]/g;
   for (const match of markdown.matchAll(pattern)) {
@@ -119,12 +123,19 @@ export function extractWikiLinks(markdown: string): string[] {
       continue;
     }
     const normalizedTarget = normalizePath(target);
-    if (normalizedTarget.startsWith("raw/assets/")) {
+    if (isAssetWikiTarget(normalizedTarget, pagePath)) {
       continue;
     }
     links.add(slugFromWikiPath(normalizedTarget));
   }
   return [...links].sort((a, b) => a.localeCompare(b));
+}
+
+function isAssetWikiTarget(target: string, pagePath?: string): boolean {
+  if (target.startsWith("raw/assets/")) {
+    return true;
+  }
+  return pagePath ? resolveAssetPath(pagePath, target) !== null : false;
 }
 
 type ExtractedAssetReference = AssetReference & {
