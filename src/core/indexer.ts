@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import {
+  existsSync,
   mkdirSync,
   readdirSync,
   readFileSync,
@@ -10,7 +11,14 @@ import path from "node:path";
 
 import { parseMarkdown } from "./frontmatter.js";
 import { isMarkdownFile, normalizePath, slugFromWikiPath } from "./paths.js";
-import type { IndexRecord, WikiIndex } from "./types.js";
+import type {
+  AssetKind,
+  AssetRecord,
+  AssetReference,
+  AssetReferenceSyntax,
+  IndexRecord,
+  WikiIndex,
+} from "./types.js";
 
 export function buildIndex(vaultDir: string): WikiIndex {
   const generatedAt = new Date().toISOString();
@@ -25,9 +33,11 @@ export function buildIndex(vaultDir: string): WikiIndex {
     backlinks: backlinks[record.slug] ?? [],
   }));
   pages.sort((a, b) => a.path.localeCompare(b.path));
+  const assets = buildAssetRecords(vaultDir, pages);
 
   const index: WikiIndex = {
     pages,
+    assets,
     generated_at: generatedAt,
   };
 
@@ -113,6 +123,167 @@ export function extractWikiLinks(markdown: string): string[] {
   return [...links].sort((a, b) => a.localeCompare(b));
 }
 
+type ExtractedAssetReference = AssetReference & {
+  asset_path: string;
+};
+
+function buildAssetRecords(
+  vaultDir: string,
+  pages: IndexRecord[],
+): AssetRecord[] {
+  const assets = new Map<string, AssetRecord>();
+
+  for (const page of pages) {
+    const markdown = readFileSync(path.join(vaultDir, page.path), "utf8");
+    for (const reference of extractAssetReferences(markdown, page)) {
+      const absoluteAssetPath = path.join(vaultDir, reference.asset_path);
+      if (!existsSync(absoluteAssetPath) || !statSync(absoluteAssetPath).isFile()) {
+        continue;
+      }
+
+      let asset = assets.get(reference.asset_path);
+      if (!asset) {
+        const extension = path.posix.extname(reference.asset_path).toLowerCase();
+        asset = {
+          path: reference.asset_path,
+          title: path.posix.basename(reference.asset_path),
+          asset_kind: assetKindFromExtension(extension),
+          extension,
+          hash: createHash("sha256")
+            .update(readFileSync(absoluteAssetPath))
+            .digest("hex"),
+          referenced_by: [],
+          references: [],
+        };
+        assets.set(reference.asset_path, asset);
+      }
+
+      if (!asset.referenced_by.includes(page.slug)) {
+        asset.referenced_by.push(page.slug);
+      }
+      asset.references.push({
+        page_slug: reference.page_slug,
+        page_path: reference.page_path,
+        reference_syntax: reference.reference_syntax,
+        label: reference.label,
+        raw_target: reference.raw_target,
+      });
+    }
+  }
+
+  for (const asset of assets.values()) {
+    asset.referenced_by.sort((a, b) => a.localeCompare(b));
+  }
+
+  return [...assets.values()].sort((a, b) => a.path.localeCompare(b.path));
+}
+
+function extractAssetReferences(
+  markdown: string,
+  page: IndexRecord,
+): ExtractedAssetReference[] {
+  const references: ExtractedAssetReference[] = [];
+  const obsidianPattern = /(!?)\[\[([^\]]+)\]\]/g;
+  for (const match of markdown.matchAll(obsidianPattern)) {
+    const rawLink = match[2];
+    if (!rawLink) {
+      continue;
+    }
+    const [rawTargetPart, labelPart] = rawLink.split("|");
+    const rawTarget = rawTargetPart?.trim();
+    if (!rawTarget) {
+      continue;
+    }
+    addAssetReference(references, {
+      page,
+      rawTarget,
+      label: labelPart?.trim() || null,
+      syntax: match[1] === "!" ? "obsidian-embed" : "obsidian-wikilink",
+    });
+  }
+
+  const markdownPattern = /(!?)\[([^\]]*)\]\(([^)]+)\)/g;
+  for (const match of markdown.matchAll(markdownPattern)) {
+    const rawTarget = match[3]?.trim();
+    if (!rawTarget) {
+      continue;
+    }
+    addAssetReference(references, {
+      page,
+      rawTarget,
+      label: match[2]?.trim() || null,
+      syntax: match[1] === "!" ? "markdown-image" : "markdown-link",
+    });
+  }
+
+  return references;
+}
+
+function addAssetReference(
+  references: ExtractedAssetReference[],
+  options: {
+    page: IndexRecord;
+    rawTarget: string;
+    label: string | null;
+    syntax: AssetReferenceSyntax;
+  },
+): void {
+  const assetPath = resolveAssetPath(options.page.path, options.rawTarget);
+  if (!assetPath) {
+    return;
+  }
+
+  references.push({
+    asset_path: assetPath,
+    page_slug: options.page.slug,
+    page_path: options.page.path,
+    reference_syntax: options.syntax,
+    label: options.label,
+    raw_target: options.rawTarget,
+  });
+}
+
+function resolveAssetPath(pagePath: string, rawTarget: string): string | null {
+  if (isExternalOrAnchorTarget(rawTarget)) {
+    return null;
+  }
+
+  const targetWithoutAnchor = rawTarget.split("#")[0]?.trim();
+  if (!targetWithoutAnchor) {
+    return null;
+  }
+
+  const normalizedTarget = normalizePath(targetWithoutAnchor);
+  const candidate = normalizedTarget.startsWith("raw/assets/")
+    ? path.posix.normalize(normalizedTarget)
+    : path.posix.normalize(
+        path.posix.join(path.posix.dirname(pagePath), normalizedTarget),
+      );
+
+  return candidate.startsWith("raw/assets/") ? candidate : null;
+}
+
+function isExternalOrAnchorTarget(rawTarget: string): boolean {
+  return (
+    rawTarget.startsWith("#") ||
+    rawTarget.startsWith("//") ||
+    /^[a-z][a-z0-9+.-]*:/i.test(rawTarget)
+  );
+}
+
+function assetKindFromExtension(extension: string): AssetKind {
+  if ([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"].includes(extension)) {
+    return "image";
+  }
+  if (extension === ".pdf") {
+    return "pdf";
+  }
+  if ([".doc", ".docx", ".txt", ".md"].includes(extension)) {
+    return "document";
+  }
+  return "other";
+}
+
 function writeCache(
   vaultDir: string,
   index: WikiIndex,
@@ -126,6 +297,7 @@ function writeCache(
   writeJson(path.join(cacheDir, "manifest.json"), {
     generated_at: generatedAt,
     page_count: index.pages.length,
+    asset_count: index.assets.length,
   });
 }
 

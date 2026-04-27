@@ -1,9 +1,12 @@
+import { createHash } from "node:crypto";
 import {
   cpSync,
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -62,5 +65,63 @@ describe("buildIndex", () => {
     expect(backlinks["wiki/concepts/state-invalidation"]).toEqual([
       "wiki/domains/android/jetpack-compose/recomposition",
     ]);
+  });
+
+  test("indexes raw assets referenced from wiki pages", () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-assets-"));
+    createdTempDirs.push(vaultDir);
+    const wikiDir = path.join(vaultDir, "wiki");
+    const assetsDir = path.join(vaultDir, "raw", "assets");
+    mkdirSync(wikiDir, { recursive: true });
+    mkdirSync(assetsDir, { recursive: true });
+
+    const architecturePath = path.join(assetsDir, "architecture.png");
+    const specPath = path.join(assetsDir, "spec.pdf");
+    writeFileSync(architecturePath, "fake image content");
+    writeFileSync(specPath, "fake pdf content");
+    writeFileSync(
+      path.join(wikiDir, "architecture.md"),
+      [
+        "# Architecture",
+        "",
+        "![[raw/assets/architecture.png|系统架构图]]",
+        "[[raw/assets/spec.pdf|设计说明]]",
+        "![Architecture Diagram](../raw/assets/architecture.png)",
+        "[Spec PDF](../raw/assets/spec.pdf)",
+      ].join("\n"),
+    );
+
+    const index = buildIndex(vaultDir);
+
+    expect(index.assets).toHaveLength(2);
+    const architecture = index.assets.find(
+      (asset) => asset.path === "raw/assets/architecture.png",
+    );
+    expect(architecture).toMatchObject({
+      title: "architecture.png",
+      asset_kind: "image",
+      extension: ".png",
+      referenced_by: ["wiki/architecture"],
+    });
+    expect(architecture?.hash).toBe(
+      createHash("sha256")
+        .update(readFileSync(architecturePath))
+        .digest("hex"),
+    );
+
+    const syntaxes = index.assets.flatMap((asset) =>
+      asset.references.map((reference) => reference.reference_syntax),
+    );
+    expect(syntaxes.sort()).toEqual([
+      "markdown-image",
+      "markdown-link",
+      "obsidian-embed",
+      "obsidian-wikilink",
+    ]);
+
+    const manifest = JSON.parse(
+      readFileSync(path.join(vaultDir, ".notewell", "manifest.json"), "utf8"),
+    ) as { asset_count?: number };
+    expect(manifest.asset_count).toBe(2);
   });
 });

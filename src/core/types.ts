@@ -36,8 +36,35 @@ export type IndexRecord = {
   hash: string;
 };
 
+export type AssetReferenceSyntax =
+  | "obsidian-embed"
+  | "obsidian-wikilink"
+  | "markdown-image"
+  | "markdown-link";
+
+export type AssetKind = "image" | "pdf" | "document" | "other";
+
+export type AssetReference = {
+  page_slug: string;
+  page_path: string;
+  reference_syntax: AssetReferenceSyntax;
+  label: string | null;
+  raw_target: string;
+};
+
+export type AssetRecord = {
+  path: string;
+  title: string;
+  asset_kind: AssetKind;
+  extension: string;
+  hash: string;
+  referenced_by: string[];
+  references: AssetReference[];
+};
+
 export type WikiIndex = {
   pages: IndexRecord[];
+  assets: AssetRecord[];
   generated_at: string;
 };
 
