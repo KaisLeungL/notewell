@@ -1,8 +1,12 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 import { parseMarkdown } from "./frontmatter.js";
-import { extractWikiLinks } from "./indexer.js";
+import {
+  extractAssetReferences,
+  extractWikiLinks,
+  type ExtractedAssetReference,
+} from "./indexer.js";
 import { isMarkdownFile, normalizePath, slugFromWikiPath } from "./paths.js";
 import type { LintFinding } from "./types.js";
 
@@ -10,12 +14,14 @@ type PageInfo = {
   path: string;
   slug: string;
   links: string[];
+  assetReferences: ExtractedAssetReference[];
   body: string;
 };
 
 export function lintVault(vaultDir: string): LintFinding[] {
   const findings: LintFinding[] = [];
   const pages = lintWikiPages(vaultDir, findings);
+  lintAssetReferences(vaultDir, pages, findings);
   lintBrokenLinks(pages, findings);
   lintOrphans(pages, findings);
   lintIndexRegistration(pages, findings);
@@ -35,6 +41,7 @@ function lintWikiPages(vaultDir: string, findings: LintFinding[]): PageInfo[] {
     const relativePath = normalizePath(path.relative(vaultDir, filePath));
     const markdown = readFileSync(filePath, "utf8");
     const parsed = parseMarkdown(markdown);
+    const slug = slugFromWikiPath(relativePath);
 
     if (parsed.parseError) {
       findings.push(error("invalid_frontmatter", relativePath, parsed.parseError));
@@ -53,13 +60,39 @@ function lintWikiPages(vaultDir: string, findings: LintFinding[]): PageInfo[] {
 
     pages.push({
       path: relativePath,
-      slug: slugFromWikiPath(relativePath),
-      links: extractWikiLinks(parsed.body),
+      slug,
+      links: extractWikiLinks(parsed.body, relativePath),
+      assetReferences: extractAssetReferences(parsed.body, {
+        path: relativePath,
+        slug,
+      }),
       body: parsed.body,
     });
   }
 
   return pages;
+}
+
+function lintAssetReferences(
+  vaultDir: string,
+  pages: PageInfo[],
+  findings: LintFinding[],
+): void {
+  for (const page of pages) {
+    for (const reference of page.assetReferences) {
+      const absoluteAssetPath = path.join(vaultDir, reference.asset_path);
+      if (existsSync(absoluteAssetPath) && statSync(absoluteAssetPath).isFile()) {
+        continue;
+      }
+      findings.push(
+        warning(
+          "missing_asset_reference",
+          page.path,
+          `Asset reference does not exist: ${reference.asset_path}.`,
+        ),
+      );
+    }
+  }
 }
 
 function lintBrokenLinks(pages: PageInfo[], findings: LintFinding[]): void {

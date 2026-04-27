@@ -106,8 +106,8 @@ function buildBacklinks(records: IndexRecord[]): Record<string, string[]> {
   return backlinks;
 }
 
-export function extractWikiLinks(markdown: string): string[] {
-  return extractWikiLinksForPage(markdown);
+export function extractWikiLinks(markdown: string, pagePath?: string): string[] {
+  return extractWikiLinksForPage(markdown, pagePath);
 }
 
 function extractWikiLinksForPage(markdown: string, pagePath?: string): string[] {
@@ -138,7 +138,7 @@ function isAssetWikiTarget(target: string, pagePath?: string): boolean {
   return pagePath ? resolveAssetPath(pagePath, target) !== null : false;
 }
 
-type ExtractedAssetReference = AssetReference & {
+export type ExtractedAssetReference = AssetReference & {
   asset_path: string;
 };
 
@@ -193,9 +193,9 @@ function buildAssetRecords(
   return [...assets.values()].sort((a, b) => a.path.localeCompare(b.path));
 }
 
-function extractAssetReferences(
+export function extractAssetReferences(
   markdown: string,
-  page: IndexRecord,
+  page: Pick<IndexRecord, "path" | "slug">,
 ): ExtractedAssetReference[] {
   const references: ExtractedAssetReference[] = [];
   const obsidianPattern = /(!?)\[\[([^\]]+)\]\]/g;
@@ -237,7 +237,7 @@ function extractAssetReferences(
 function addAssetReference(
   references: ExtractedAssetReference[],
   options: {
-    page: IndexRecord;
+    page: Pick<IndexRecord, "path" | "slug">;
     rawTarget: string;
     label: string | null;
     syntax: AssetReferenceSyntax;

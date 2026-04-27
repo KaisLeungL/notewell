@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync, rmSync } from "node:fs";
+import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
@@ -12,6 +12,32 @@ function copyFixture(name: string): string {
   const dir = mkdtempSync(path.join(tmpdir(), `notewell-${name}-`));
   createdTempDirs.push(dir);
   cpSync(path.join("test", "fixtures", name), dir, { recursive: true });
+  return dir;
+}
+
+function createAssetReferenceVault(): string {
+  const dir = mkdtempSync(path.join(tmpdir(), "notewell-asset-lint-"));
+  createdTempDirs.push(dir);
+
+  mkdirSync(path.join(dir, "raw", "assets"), { recursive: true });
+  mkdirSync(path.join(dir, "wiki"), { recursive: true });
+  writeFileSync(path.join(dir, "raw", "assets", "architecture.png"), "png", "utf8");
+  writeFileSync(
+    path.join(dir, "wiki", "asset-references.md"),
+    `---
+title: Asset References
+summary: Checks asset references.
+tags:
+  - assets
+---
+
+Existing asset: ![[raw/assets/architecture.png]]
+Missing Obsidian asset: ![[raw/assets/missing.png]]
+Missing Markdown asset: ![Missing](../raw/assets/missing-from-markdown.png)
+`,
+    "utf8",
+  );
+
   return dir;
 }
 
@@ -85,6 +111,43 @@ describe("lintVault", () => {
           code: "raw_without_source",
           path: "raw/articles/compose-performance.md",
           severity: "warning",
+        }),
+      ]),
+    );
+  });
+
+  test("warns about missing asset references without treating assets as wikilinks", () => {
+    const findings = lintVault(createAssetReferenceVault());
+
+    expect(findings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "missing_asset_reference",
+          path: "wiki/asset-references.md",
+          severity: "warning",
+          message: expect.stringContaining("raw/assets/missing.png"),
+        }),
+        expect.objectContaining({
+          code: "missing_asset_reference",
+          path: "wiki/asset-references.md",
+          severity: "warning",
+          message: expect.stringContaining("raw/assets/missing-from-markdown.png"),
+        }),
+      ]),
+    );
+    expect(findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "broken_wikilink",
+          path: "wiki/asset-references.md",
+        }),
+      ]),
+    );
+    expect(findings).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "missing_asset_reference",
+          message: expect.stringContaining("raw/assets/architecture.png"),
         }),
       ]),
     );
