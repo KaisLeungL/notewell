@@ -3,6 +3,7 @@ dist/
 coverage/
 .vitest-cache/
 .nyc_output/
+.worktrees/
 
 .DS_Store
 .idea/
