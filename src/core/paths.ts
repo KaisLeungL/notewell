@@ -3,7 +3,7 @@ import path from "node:path";
 import type { VaultLayer } from "./types.js";
 
 export function requiredVaultDirs(): string[] {
-  return ["raw", "wiki", "schema", ".notewell"];
+  return ["raw", "wiki", ".notewell"];
 }
 
 export function normalizePath(filePath: string): string {

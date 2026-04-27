@@ -27,7 +27,7 @@ const SUPPORTED_AGENT_ADAPTERS = ["claude", "cursor", "codex"] as const;
 const COMMANDS = [
   {
     name: "notewell init",
-    summary: "Initialize a new vault (raw/, wiki/, schema/, .notewell/).",
+    summary: "Initialize a new vault (raw/, wiki/, .notewell/, root guides).",
   },
   {
     name: "notewell index",
@@ -51,7 +51,7 @@ const COMMANDS = [
   },
   {
     name: "notewell doctor",
-    summary: "Verify directory structure, schema files, and index freshness.",
+    summary: "Verify directory structure, root guides, and index freshness.",
   },
 ] as const;
 

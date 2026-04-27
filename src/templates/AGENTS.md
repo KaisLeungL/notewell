@@ -9,9 +9,9 @@ requirement.
 
 - Preserve original material in `raw/`.
 - Maintain durable synthesized knowledge in `wiki/`.
-- Keep agent instructions and maintenance rules in `schema/`.
 - Treat `.notewell/` as a generated cache that can always be rebuilt.
 - Prefer clear Markdown, explicit wikilinks, and concise technical summaries.
+- Use installed Notewell skills for focused ingest, query, and lint workflows.
 
 ## Permission Boundaries
 
@@ -19,12 +19,9 @@ requirement.
   in `raw/` when the user explicitly asks to add or correct source material.
 - `wiki/` is the primary write area for source summaries, concepts, analyses,
   questions, playbooks, and project notes.
-- `schema/` defines operating rules. Edit it only when the user asks to change
-  agent behavior or vault conventions.
 - `.notewell/` is derived output. Do not hand-edit cache files; rebuild them
   with `notewell index`.
-- Do not delete user notes, raw sources, or schema files unless the user
-  explicitly requests it.
+- Do not delete user notes or raw sources unless the user explicitly requests it.
 
 ## Baseline Workflow
 
@@ -45,12 +42,12 @@ feature.
 
 ## Task Routing
 
-- Ingestion work follows `schema/ingestion.md`.
-- Query answering follows `schema/query.md`.
-- Cleanup and health checks follow `schema/maintenance.md`.
-- Naming and placement should follow `schema/taxonomy.md`.
-- Prose should follow `schema/writing-style.md`.
-- Claude-specific guidance lives in `schema/CLAUDE.md`.
+- Ingestion work follows the `notewell-ingest` skill.
+- Query answering follows the `notewell-query` skill.
+- Cleanup and health checks follow the `notewell-lint` skill.
+- Naming and placement should follow the local wiki taxonomy.
+- Prose should be concise, evidence-backed, and easy to scan.
+- Claude-specific guidance lives in `CLAUDE.md`.
 
 ## Wiki Page Contract
 
@@ -66,9 +63,8 @@ updated: YYYY-MM-DD
 ---
 ```
 
-Use the local taxonomy when choosing `type` and location. Prefer stable,
-descriptive filenames. Add wikilinks to related durable pages so new knowledge
-does not become isolated.
+Use stable, descriptive filenames. Add wikilinks to related durable pages so new
+knowledge does not become isolated.
 
 ## Evidence and Conflict Handling
 

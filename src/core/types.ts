@@ -7,11 +7,11 @@
  */
 
 /**
- * The three core layers of a notewell vault. The fourth directory
- * (`.notewell/`) is a derived cache and is intentionally excluded here
- * because it is rebuildable from these three.
+ * The two core content layers of a notewell vault. The `.notewell/` directory is
+ * a derived cache and is intentionally excluded here because it is rebuildable
+ * from Markdown.
  */
-export type VaultLayer = "raw" | "wiki" | "schema";
+export type VaultLayer = "raw" | "wiki";
 
 export type ParsedMarkdown = {
   frontmatter: Record<string, unknown>;

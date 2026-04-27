@@ -30,9 +30,10 @@ The `notewell-query` skill has one hard rule: Search the vault before answering.
 
 ## Maintenance
 
-Use `notewell doctor .` to check required structure and stale indexes. Use
-`notewell lint .` to find broken links, missing metadata, and raw files that
-need source summaries.
+Use `notewell doctor .` to check required structure, root agent guides, and stale
+indexes. Use `notewell lint .` to find broken links, missing metadata, stale
+index entries, unresolved knowledge conflicts, and raw files that need source
+summaries.
 
 ## Optional Features
 

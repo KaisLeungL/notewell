@@ -5,16 +5,7 @@ import { isMarkdownFile } from "./paths.js";
 import { requiredVaultDirs } from "./paths.js";
 import type { DoctorCheck } from "./types.js";
 
-const REQUIRED_SCHEMA_FILES = [
-  "AGENTS.md",
-  "CLAUDE.md",
-  "ingestion.md",
-  "query.md",
-  "maintenance.md",
-  "taxonomy.md",
-  "writing-style.md",
-] as const;
-
+const REQUIRED_ROOT_FILES = ["AGENTS.md", "CLAUDE.md"] as const;
 const REQUIRED_WIKI_FILES = ["index.md", "log.md"] as const;
 
 export function doctorVault(vaultDir: string): DoctorCheck[] {
@@ -37,12 +28,12 @@ function checkDirectories(vaultDir: string, checks: DoctorCheck[]): void {
 }
 
 function checkRequiredFiles(vaultDir: string, checks: DoctorCheck[]): void {
-  for (const file of REQUIRED_SCHEMA_FILES) {
-    const target = path.join(vaultDir, "schema", file);
+  for (const file of REQUIRED_ROOT_FILES) {
+    const target = path.join(vaultDir, file);
     checks.push(
       existsSync(target)
-        ? ok(`schema:${file}`, `schema/${file} exists.`)
-        : fail(`schema:${file}`, `schema/${file} is missing.`),
+        ? ok(`file:${file}`, `${file} exists.`)
+        : fail(`file:${file}`, `${file} is missing.`),
     );
   }
 

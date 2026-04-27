@@ -42,7 +42,7 @@ describe("agent skill templates", () => {
 
     expect(template).toContain("Search the vault before answering");
     expect(template).toContain("user-invocable: true");
-    expect(template).toContain("schema/query.md");
+    expect(template).toContain("AGENTS.md");
     expect(template).toContain("Read `wiki/index.md` first");
     expect(template).toContain("notewell query");
     expect(template).toContain("[[Page Title]]");
@@ -55,7 +55,7 @@ describe("agent skill templates", () => {
   test("ingest skill compiles sources into the wiki", () => {
     const template = readSkill("notewell-ingest");
 
-    expect(template).toContain("schema/ingestion.md");
+    expect(template).toContain("AGENTS.md");
     expect(template).toContain("raw/");
     expect(template).toContain("raw/09-archive/**");
     expect(template).toContain("wiki/sources/");

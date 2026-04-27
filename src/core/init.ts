@@ -27,13 +27,8 @@ type TemplateFile = {
 };
 
 const TEMPLATE_FILES: readonly TemplateFile[] = [
-  templateFile("schema/AGENTS.md"),
-  templateFile("schema/CLAUDE.md"),
-  templateFile("schema/ingestion.md"),
-  templateFile("schema/query.md"),
-  templateFile("schema/maintenance.md"),
-  templateFile("schema/taxonomy.md"),
-  templateFile("schema/writing-style.md"),
+  templateFile("AGENTS.md"),
+  templateFile("CLAUDE.md"),
   templateFile("wiki/index.md"),
   templateFile("wiki/log.md"),
 ];

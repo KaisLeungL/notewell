@@ -21,8 +21,9 @@ or proprietary editor dependency.
 ```text
 raw/        Immutable source material.
 wiki/       Durable synthesized knowledge.
-schema/     Agent instructions and maintenance rules.
 .notewell/  Rebuildable JSON cache.
+AGENTS.md   Shared agent guidance.
+CLAUDE.md   Claude-specific guidance.
 ```
 
 The cache is derived. Delete `.notewell/` whenever you want; `notewell index`
@@ -79,8 +80,8 @@ Replace `path/to/notewell-repo` with your own clone path.
 
 ## Commands
 
-- `notewell init [dir]`: create `raw/`, `wiki/`, `schema/`, `.notewell/`, and
-  starter templates without overwriting existing files.
+- `notewell init [dir]`: create `raw/`, `wiki/`, `.notewell/`, root agent
+  guides, and starter templates without overwriting existing files.
 - `notewell init --agent claude [dir]`: also create Claude skills for the
   Notewell ingest, query, and lint workflows.
 - `notewell init --agent cursor [dir]`: also create Cursor skills for the
@@ -97,8 +98,8 @@ Replace `path/to/notewell-repo` with your own clone path.
   broken wikilinks, orphan pages, and raw files without source pages.
 - `notewell log [--type type] "message" [dir]`: append a dated entry to
   `wiki/log.md`.
-- `notewell doctor [dir]`: check required folders, schema files, wiki starter
-  files, and index freshness.
+- `notewell doctor [dir]`: check required folders, root guide files, wiki
+  starter files, and index freshness.
 
 ## Recommended Workflow
 

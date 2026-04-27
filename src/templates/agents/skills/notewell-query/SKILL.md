@@ -15,7 +15,7 @@ knowledge base".
 
 ## Retrieval Workflow
 
-1. Read `schema/AGENTS.md` and `schema/query.md`.
+1. Read `AGENTS.md` and, when present, `CLAUDE.md`.
 2. Identify the user's question and preserve the original wording.
 3. Read `wiki/index.md` first. Use it to locate relevant sources, concepts,
    analyses, questions, playbooks, projects, and domain pages.

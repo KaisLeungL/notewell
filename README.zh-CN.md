@@ -19,8 +19,9 @@ JSON 缓存完成索引、搜索、lint 和 agent 工作流。
 ```text
 raw/        不可变的原始资料。
 wiki/       长期维护的结构化知识。
-schema/     Agent 指令和维护规则。
 .notewell/  可重建的 JSON 缓存。
+AGENTS.md   通用 Agent 指南。
+CLAUDE.md   Claude 专用补充指南。
 ```
 
 `.notewell/` 是派生缓存，可以删除；运行 `notewell index` 后会从
@@ -75,8 +76,8 @@ notewell init --agent cursor ~/notewell-vault
 
 ## 命令说明
 
-- `notewell init [dir]`：创建 `raw/`、`wiki/`、`schema/`、`.notewell/`
-  和初始模板；不会覆盖已有文件。
+- `notewell init [dir]`：创建 `raw/`、`wiki/`、`.notewell/`、根目录
+  Agent 指南和初始模板；不会覆盖已有文件。
 - `notewell init --agent claude [dir]`：额外生成 Claude 可用的 Notewell
   ingest、query、lint Skills。
 - `notewell init --agent cursor [dir]`：额外生成 Cursor 可用的 Notewell
@@ -91,7 +92,7 @@ notewell init --agent cursor ~/notewell-vault
 - `notewell lint [dir]`：检查无效 frontmatter、缺失元数据、断开的 wikilink、
   孤立页面，以及没有对应 source page 的 raw 文件。
 - `notewell log [--type type] "message" [dir]`：向 `wiki/log.md` 追加带日期的日志。
-- `notewell doctor [dir]`：检查核心目录、schema 文件、wiki 初始文件和索引新鲜度。
+- `notewell doctor [dir]`：检查核心目录、根目录指南、wiki 初始文件和索引新鲜度。
 
 ## 推荐工作流
 

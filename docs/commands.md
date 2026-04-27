@@ -2,7 +2,7 @@
 
 ## `notewell init [dir]`
 
-Creates `raw/`, `wiki/`, `schema/`, `.notewell/`, starter wiki files, and schema
+Creates `raw/`, `wiki/`, `.notewell/`, root agent guide files, and starter wiki
 files. Existing files are skipped rather than overwritten.
 
 `--agent` is repeatable and creates complete agent skills:
@@ -46,5 +46,5 @@ Appends a dated entry to `wiki/log.md`, such as:
 
 ## `notewell doctor [dir]`
 
-Checks core directories, required schema files, starter wiki files, and whether
+Checks core directories, required root guide files, starter wiki files, and whether
 `.notewell/index.json` is missing or stale.

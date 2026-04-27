@@ -14,7 +14,7 @@ human or LLM can use later.
 
 ## Before Writing
 
-1. Read `schema/AGENTS.md` and `schema/ingestion.md`.
+1. Read `AGENTS.md` and, when present, `CLAUDE.md`.
 2. Confirm the ingestion scope. `/ingest` means scan eligible files under
    `raw/`; `/ingest <path>` means process only that path.
 3. Treat implicit requests such as "ingest this into the knowledge base" or

@@ -36,19 +36,15 @@ describe("initVault", () => {
       expect.arrayContaining([
         "raw",
         "wiki",
-        "schema",
         ".notewell",
+        "AGENTS.md",
+        "CLAUDE.md",
         "wiki/index.md",
         "wiki/log.md",
-        "schema/AGENTS.md",
-        "schema/CLAUDE.md",
-        "schema/ingestion.md",
-        "schema/query.md",
-        "schema/maintenance.md",
-        "schema/taxonomy.md",
-        "schema/writing-style.md",
       ]),
     );
+    expect(result.created).not.toContain("schema");
+    expect(existsSync(path.join(vaultDir, "schema"))).toBe(false);
   });
 
   test("does not overwrite existing user files", () => {

@@ -38,7 +38,6 @@ describe("doctorVault", () => {
       expect.arrayContaining([
         expect.objectContaining({ name: "directory:raw", status: "fail" }),
         expect.objectContaining({ name: "directory:wiki", status: "fail" }),
-        expect.objectContaining({ name: "directory:schema", status: "fail" }),
         expect.objectContaining({ name: "directory:.notewell", status: "fail" }),
       ]),
     );
@@ -47,14 +46,14 @@ describe("doctorVault", () => {
   test("detects missing starter files and missing index", () => {
     const vaultDir = createTempDir();
     initVault(vaultDir);
-    unlinkSync(path.join(vaultDir, "schema", "query.md"));
+    unlinkSync(path.join(vaultDir, "AGENTS.md"));
     unlinkSync(path.join(vaultDir, "wiki", "log.md"));
 
     const checks = doctorVault(vaultDir);
 
     expect(checks).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ name: "schema:query.md", status: "fail" }),
+        expect.objectContaining({ name: "file:AGENTS.md", status: "fail" }),
         expect.objectContaining({ name: "wiki:log.md", status: "fail" }),
         expect.objectContaining({ name: "index", status: "warn" }),
       ]),

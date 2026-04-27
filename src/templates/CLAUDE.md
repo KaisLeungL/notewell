@@ -1,7 +1,7 @@
 # Claude Guide
 
-Read `schema/AGENTS.md` first. This file adds Claude-specific execution rules
-for using the shared Notewell workflow consistently.
+Read `AGENTS.md` first. This file adds Claude-specific execution rules for using
+the shared Notewell workflow consistently.
 
 ## Operating Posture
 
@@ -13,9 +13,10 @@ for using the shared Notewell workflow consistently.
 
 ## Starting a Task
 
-1. Identify the task type: ingestion, query answering, maintenance, schema
-   update, or general note editing.
-2. Read `schema/AGENTS.md`, then the focused schema file for the task.
+1. Identify the task type: ingestion, query answering, maintenance, or general
+   note editing.
+2. Read `AGENTS.md`, then use the focused Notewell skill for the task when
+   available.
 3. Inspect relevant `wiki/` pages and, when needed, source files under `raw/`.
 4. Use `notewell search "<query>" .` when the answer depends on existing wiki
    context.
@@ -36,11 +37,9 @@ for using the shared Notewell workflow consistently.
 
 ## Workflow Shortcuts
 
-- Ingestion work follows `schema/ingestion.md`.
-- Query answering follows `schema/query.md`.
-- Cleanup and health checks follow `schema/maintenance.md`.
-- Naming and placement follow `schema/taxonomy.md`.
-- Writing style follows `schema/writing-style.md`.
+- Ingestion work follows the `notewell-ingest` skill.
+- Query answering follows the `notewell-query` skill.
+- Cleanup and health checks follow the `notewell-lint` skill.
 
 ## Tool Preference
 
