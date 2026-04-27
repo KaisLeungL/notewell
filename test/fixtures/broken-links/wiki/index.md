@@ -8,3 +8,4 @@ tags: [index]
 # Wiki Index
 
 [[wiki/good]]
+[[wiki/deleted-page]]

@@ -101,7 +101,7 @@ function templateFile(relativePath: string): TemplateFile {
 function agentSkillFile(agent: AgentAdapter, skill: string): TemplateFile {
   return {
     target: `.${agent}/skills/${skill}/SKILL.md`,
-    template: `agents/${agent}/skills/${skill}/SKILL.md`,
+    template: `agents/skills/${skill}/SKILL.md`,
   };
 }
 

@@ -6,41 +6,76 @@ import { describe, expect, test } from "vitest";
 const agents = ["claude", "cursor", "codex"] as const;
 const skills = ["notewell-ingest", "notewell-query", "notewell-lint"] as const;
 
-function readSkill(agent: (typeof agents)[number], skill: (typeof skills)[number]): string {
+function readSkill(skill: (typeof skills)[number]): string {
   return readFileSync(
-    path.join("src", "templates", "agents", agent, "skills", skill, "SKILL.md"),
+    path.join("src", "templates", "agents", "skills", skill, "SKILL.md"),
     "utf8",
   );
 }
 
 describe("agent skill templates", () => {
-  test.each(agents)("defines complete Notewell skills for %s", (agent) => {
+  test("defines one canonical template for each Notewell skill", () => {
     for (const skill of skills) {
-      expect(readSkill(agent, skill)).toContain(`name: ${skill}`);
+      expect(readSkill(skill)).toContain(`name: ${skill}`);
     }
   });
 
-  test.each(agents)("query skill forces vault retrieval for %s", (agent) => {
-    const template = readSkill(agent, "notewell-query");
+  test("does not keep adapter-specific skill template copies", () => {
+    for (const agent of agents) {
+      for (const skill of skills) {
+        const adapterCopyPath = path.join(
+          "src",
+          "templates",
+          "agents",
+          agent,
+          "skills",
+          skill,
+          "SKILL.md",
+        );
+        expect(() => readFileSync(adapterCopyPath, "utf8")).toThrow();
+      }
+    }
+  });
+
+  test("query skill forces vault retrieval", () => {
+    const template = readSkill("notewell-query");
 
     expect(template).toContain("Search the vault before answering");
-    expect(template).toContain("If no vault evidence is found");
+    expect(template).toContain("user-invocable: true");
+    expect(template).toContain("schema/query.md");
+    expect(template).toContain("Read `wiki/index.md` first");
+    expect(template).toContain("notewell query");
+    expect(template).toContain("[[Page Title]]");
+    expect(template).toContain("本地知识库中未找到相关内容，以下为通用知识回答");
+    expect(template).toContain("wiki/analyses/");
+    expect(template).toContain("notewell log --type query");
     expect(template).toContain("notewell query");
   });
 
-  test.each(agents)("ingest skill compiles sources into the wiki for %s", (agent) => {
-    const template = readSkill(agent, "notewell-ingest");
+  test("ingest skill compiles sources into the wiki", () => {
+    const template = readSkill("notewell-ingest");
 
+    expect(template).toContain("schema/ingestion.md");
     expect(template).toContain("raw/");
+    expect(template).toContain("raw/09-archive/**");
     expect(template).toContain("wiki/sources/");
+    expect(template).toContain("wiki/sources/<raw relative path>.md");
+    expect(template).toContain("core thesis");
+    expect(template).toContain("Conflict Handling");
     expect(template).toContain("notewell index .");
     expect(template).toContain("notewell lint .");
   });
 
-  test.each(agents)("lint skill checks wiki health for %s", (agent) => {
-    const template = readSkill(agent, "notewell-lint");
+  test("lint skill checks wiki health", () => {
+    const template = readSkill("notewell-lint");
 
-    expect(template).toContain("contradictions");
+    expect(template).toContain("user-invocable: true");
+    expect(template).toContain("/health");
+    expect(template).toContain("stale index entries");
+    expect(template).toContain("unregistered pages");
+    expect(template).toContain("## 知识冲突");
+    expect(template).toContain("read-only");
+    expect(template).toContain("知识库健康体检报告");
     expect(template).toContain("orphan pages");
     expect(template).toContain("notewell lint .");
     expect(template).toContain("notewell index .");

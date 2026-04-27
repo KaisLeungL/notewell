@@ -10,6 +10,7 @@ type PageInfo = {
   path: string;
   slug: string;
   links: string[];
+  body: string;
 };
 
 export function lintVault(vaultDir: string): LintFinding[] {
@@ -17,6 +18,8 @@ export function lintVault(vaultDir: string): LintFinding[] {
   const pages = lintWikiPages(vaultDir, findings);
   lintBrokenLinks(pages, findings);
   lintOrphans(pages, findings);
+  lintIndexRegistration(pages, findings);
+  lintKnowledgeConflicts(pages, findings);
   lintRawSources(vaultDir, findings);
   return findings.sort((a, b) => a.path.localeCompare(b.path) || a.code.localeCompare(b.code));
 }
@@ -52,6 +55,7 @@ function lintWikiPages(vaultDir: string, findings: LintFinding[]): PageInfo[] {
       path: relativePath,
       slug: slugFromWikiPath(relativePath),
       links: extractWikiLinks(parsed.body),
+      body: parsed.body,
     });
   }
 
@@ -86,6 +90,53 @@ function lintOrphans(pages: PageInfo[], findings: LintFinding[]): void {
     if (page.links.length === 0 && (backlinks.get(page.slug) ?? 0) === 0) {
       findings.push(
         warning("orphan_page", page.path, "Page has no wikilinks or backlinks."),
+      );
+    }
+  }
+}
+
+function lintIndexRegistration(pages: PageInfo[], findings: LintFinding[]): void {
+  const indexPage = pages.find((page) => page.slug === "wiki/index");
+  if (!indexPage) {
+    return;
+  }
+
+  const slugs = new Set(pages.map((page) => page.slug));
+  const registered = new Set(indexPage.links);
+
+  for (const link of indexPage.links) {
+    if (!slugs.has(link)) {
+      findings.push(
+        warning("stale_index_entry", indexPage.path, `Index registers missing page: ${link}.`),
+      );
+    }
+  }
+
+  for (const page of pages) {
+    if (page.slug === "wiki/index" || page.slug === "wiki/log") {
+      continue;
+    }
+    if (!registered.has(page.slug)) {
+      findings.push(
+        warning(
+          "unregistered_index_page",
+          page.path,
+          "Wiki page exists but is not registered in wiki/index.md.",
+        ),
+      );
+    }
+  }
+}
+
+function lintKnowledgeConflicts(pages: PageInfo[], findings: LintFinding[]): void {
+  for (const page of pages) {
+    if (/^##\s+知识冲突(?:\s|$)/m.test(page.body)) {
+      findings.push(
+        warning(
+          "unresolved_knowledge_conflict",
+          page.path,
+          "Page contains an unresolved knowledge conflict section.",
+        ),
       );
     }
   }

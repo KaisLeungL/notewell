@@ -124,6 +124,26 @@ describe("initVault", () => {
     expect(
       existsSync(path.join(vaultDir, ".codex/skills/notewell-query/SKILL.md")),
     ).toBe(true);
+
+    const canonicalQuerySkill = readFileSync(
+      path.join("src", "templates", "agents", "skills", "notewell-query", "SKILL.md"),
+      "utf8",
+    );
+    expect(
+      readFileSync(
+        path.join(vaultDir, ".claude/skills/notewell-query/SKILL.md"),
+        "utf8",
+      ),
+    ).toBe(canonicalQuerySkill);
+    expect(
+      readFileSync(
+        path.join(vaultDir, ".cursor/skills/notewell-query/SKILL.md"),
+        "utf8",
+      ),
+    ).toBe(canonicalQuerySkill);
+    expect(
+      readFileSync(path.join(vaultDir, ".codex/skills/notewell-query/SKILL.md"), "utf8"),
+    ).toBe(canonicalQuerySkill);
   });
 
   test("does not overwrite existing agent skill files", () => {

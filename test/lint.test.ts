@@ -57,6 +57,21 @@ describe("lintVault", () => {
           path: "wiki/orphan.md",
           severity: "warning",
         }),
+        expect.objectContaining({
+          code: "unregistered_index_page",
+          path: "wiki/broken.md",
+          severity: "warning",
+        }),
+        expect.objectContaining({
+          code: "unresolved_knowledge_conflict",
+          path: "wiki/conflict.md",
+          severity: "warning",
+        }),
+        expect.objectContaining({
+          code: "stale_index_entry",
+          path: "wiki/index.md",
+          severity: "warning",
+        }),
       ]),
     );
   });
