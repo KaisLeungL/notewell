@@ -14,6 +14,7 @@ describe("cli help", () => {
     expect(help).toContain("notewell init");
     expect(help).toContain("notewell index");
     expect(help).toContain("notewell search");
+    expect(help).toContain("notewell onboard");
     expect(help).toContain("notewell lint");
     expect(help).toContain("notewell log");
     expect(help).toContain("notewell doctor");
@@ -86,6 +87,17 @@ describe("cli help", () => {
       existsSync(
         path.join(vaultDir, ".cursor/skills/notewell-query/SKILL.md"),
       ),
+    ).toBe(true);
+  });
+
+  test("runs onboard in yes mode", async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-onboard-"));
+
+    const code = await run(["onboard", "--yes", "--agent", "cursor", vaultDir]);
+
+    expect(code).toBe(0);
+    expect(
+      existsSync(path.join(vaultDir, ".cursor/skills/notewell-query/SKILL.md")),
     ).toBe(true);
   });
 

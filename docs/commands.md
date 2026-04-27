@@ -18,6 +18,19 @@ Each selected adapter receives `notewell-ingest`, `notewell-query`, and
 `notewell-lint` skills. Skills are the agent entry point; CLI commands are helper
 tools used by those skills.
 
+## `notewell onboard [dir]`
+
+Starts an interactive setup guide for choosing the vault directory and agent
+skills. It calls the same initializer as `notewell init` after confirmation.
+
+```bash
+notewell onboard ~/vault
+notewell onboard --agent cursor ~/vault
+notewell onboard --yes --agent claude --agent cursor ~/vault
+```
+
+Use `--yes` for non-interactive setup with the provided path and agent flags.
+
 ## `notewell index [dir]`
 
 Scans `wiki/**/*.md`, parses frontmatter, extracts wikilinks, builds backlinks,

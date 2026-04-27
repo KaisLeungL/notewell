@@ -3,10 +3,14 @@
 ## Create a Vault
 
 ```bash
+notewell onboard ~/wiki
 notewell init ~/wiki
 notewell index ~/wiki
 notewell doctor ~/wiki
 ```
+
+Use `notewell onboard` when you want an interactive guide for choosing the vault
+path and agent skills. Use `notewell init` directly for scriptable setup.
 
 Markdown vault is the source of truth. The JSON index is always available after
 `notewell index` and can be rebuilt from `wiki/**/*.md`.

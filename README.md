@@ -16,6 +16,37 @@ for search, linting, and agent workflows.
 The baseline workflow has no required database, MCP server, embedding service,
 or proprietary editor dependency.
 
+## The LLM Wiki pattern
+
+Notewell follows the **LLM Wiki** idea: a personal knowledge base where the model
+*incrementally maintains* an interlinked Markdown tree, rather than only
+retrieving source chunks at query time (typical RAG). The wiki is a **persistent,
+compounding artifact**—after each new source, cross-links, entity pages, and
+syntheses can be updated so knowledge **accumulates**; contradictions and gaps can
+be tracked instead of re-derived on every question. The human curates sources and
+steers; the model does the heavy summarizing, filing, and cross-referencing. Full
+background and examples (research, reading, business, and more) are in Andrej
+Karpathy’s note:  
+[“LLM Wiki” (Gist)](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+
+![LLM Wiki: raw sources, the wiki, and the schema (agent policy)](llm-wiki-architecture.png)
+
+**Architecture in the pattern** — (1) **Raw sources**: immutable, curated files.  
+(2) **The wiki**: LLM-edited Markdown (summaries, entities, concepts, index).  
+(3) **The schema / agent policy**: how to ingest, query, and maintain; in
+Notewell this is `AGENTS.md`, `CLAUDE.md`, and the generated
+[agent skills](#agent-skills).
+
+**Operations** — **Ingest** (new material in `raw/` updates `wiki/`), **query**
+(search and cite wiki pages; good answers can be written back as pages), **lint**
+(health: stale claims, orphans, missing links). The pattern also highlights
+`wiki/index.md` as the content catalog to read first, and `wiki/log.md` as an
+append-only timeline.
+
+Notewell adds a **derived** JSON index under `.notewell/` so search and checks are
+fast and offline; see [Layers](#layers) below. Optional tooling (MCP, embeddings,
+external search) stays optional, as in the Gist’s “pick what you need” spirit.
+
 ## Layers
 
 ```text
@@ -45,6 +76,11 @@ rebuilds it from Markdown.
 
 ## Quickstart
 
+**Recommended:** use `notewell onboard` right after you install dependencies and
+build. It is the interactive installer: you pick the vault path and which agent
+skills to generate, and it initializes the vault for you. You do not need a
+separate `notewell init` if you complete onboarding.
+
 Run from the project root when using `node dist/cli.js` (the directory that
 contains `package.json`):
 
@@ -52,14 +88,22 @@ contains `package.json`):
 cd path/to/notewell-repo
 npm install
 npm run build
-node dist/cli.js init ~/notewell-vault
-node dist/cli.js init --agent claude ~/notewell-vault
+node dist/cli.js onboard ~/notewell-vault
+```
+
+Then, with the same vault path:
+
+```bash
 node dist/cli.js index ~/notewell-vault
 node dist/cli.js search "compose performance" ~/notewell-vault
 node dist/cli.js lint ~/notewell-vault
 node dist/cli.js log --type note "Updated Compose notes" ~/notewell-vault
 node dist/cli.js doctor ~/notewell-vault
 ```
+
+**Non-interactive:** to create a vault without the wizard, use
+`notewell init` and optional `notewell init --agent <claude|cursor|codex>` instead
+of `onboard`.
 
 If the package is installed as a binary, use `notewell` instead of
 `node dist/cli.js`.
@@ -72,16 +116,44 @@ cd path/to/notewell-repo
 npm install
 npm run build
 npm link
-notewell init ~/notewell-vault
-notewell init --agent cursor ~/notewell-vault
+notewell onboard ~/notewell-vault
 ```
 
 Replace `path/to/notewell-repo` with your own clone path.
+
+## Scenario-based usage
+
+The same `raw/` + `wiki/` split works for many domains. You can use one vault per
+project or a single life vault with subfolders; keep immutable drops in `raw/`
+and durable notes in `wiki/`, with wikilinks between them.
+
+**Work and project documentation** — Store exports you do not want to hand-edit
+(contracts, spec PDFs, tickets, long email threads, architecture diagrams, slide
+decks) under `raw/`. Maintain decisions, how-tos, playbooks, incident postmortems,
+and project glossaries in `wiki/` (for example `wiki/playbooks/`,
+`wiki/analyses/`, and `[[wiki/...]]` links to people, systems, and tickets). After
+`notewell index`, `notewell search` and the query skill can answer "what did we
+decide about X" from your own text, with citations to wiki pages.
+
+**Reading notes (books, papers, long articles)** — Add the original file to
+`raw/` and write or ingest a `wiki/sources/...` page that mirrors the path,
+capturing thesis, key claims, and open questions. Link syntheses, comparisons,
+or quotes in `wiki/syntheses/`, `wiki/analyses/`, or topic concepts so a later
+search chains sources to your commentary.
+
+**Learning and course notes** — Put course PDFs, lab handouts, and assignment
+prompts in `raw/`, then build concept pages, cheat sheets, and question or flashcard
+notes in `wiki/`, with `[[wikilinks]]` from a lesson to prerequisites and
+follow-ups. Use `wiki/questions/` (or a similar area) to track what you still
+need to close the loop on; `notewell index` makes review sessions searchable by
+topic.
 
 ## Commands
 
 - `notewell init [dir]`: create `raw/`, `wiki/`, `.notewell/`, root agent
   guides, and starter templates without overwriting existing files.
+- `notewell onboard [dir]`: guide vault initialization with an interactive
+  prompt for the target path and agent skills. Use `--yes` for defaults.
 - `notewell init --agent claude [dir]`: also create Claude skills for the
   Notewell ingest, query, and lint workflows.
 - `notewell init --agent cursor [dir]`: also create Cursor skills for the

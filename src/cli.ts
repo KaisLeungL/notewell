@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import process from "node:process";
 
 import { initVault, type AgentAdapter } from "./core/init.js";
+import { runOnboarding } from "./core/onboard.js";
 import {
   doctorOperation,
   indexOperation,
@@ -40,6 +41,10 @@ const COMMANDS = [
   {
     name: "notewell query",
     summary: "Alias for search when answering knowledge-base questions.",
+  },
+  {
+    name: "notewell onboard",
+    summary: "Guide installation and vault initialization interactively.",
   },
   {
     name: "notewell lint",
@@ -115,6 +120,32 @@ export async function run(argv: string[]): Promise<number> {
       `Initialized notewell vault at ${parsed.vaultDir}\n` +
         `Created: ${result.created.length}\n` +
         `Skipped: ${result.skipped.length}\n`,
+    );
+    return 0;
+  }
+
+  if (command === "onboard") {
+    const parsed = parseOnboardArgs(argv.slice(1));
+    if (parsed.error) {
+      process.stderr.write(`notewell: ${parsed.error}\n`);
+      return 1;
+    }
+    const result = await runOnboarding({
+      yes: parsed.yes,
+      agents: parsed.agents,
+      ...(parsed.vaultDir ? { vaultDir: parsed.vaultDir } : {}),
+    });
+    if (result.cancelled) {
+      process.stdout.write("Onboarding cancelled.\n");
+      return 0;
+    }
+    process.stdout.write(
+      `Initialized notewell vault at ${result.vaultDir}\n` +
+        `Created: ${result.initResult?.created.length ?? 0}\n` +
+        `Skipped: ${result.initResult?.skipped.length ?? 0}\n` +
+        "\nNext steps:\n" +
+        `  notewell index ${result.vaultDir}\n` +
+        `  notewell doctor ${result.vaultDir}\n`,
     );
     return 0;
   }
@@ -229,6 +260,41 @@ function parseInitArgs(args: string[]): {
     vaultDir: remaining[0] ?? process.cwd(),
     error: null,
   };
+}
+
+function parseOnboardArgs(args: string[]): {
+  agents: AgentAdapter[];
+  vaultDir: string | undefined;
+  yes: boolean;
+  error: string | null;
+} {
+  const agents: AgentAdapter[] = [];
+  const remaining: string[] = [];
+  let yes = false;
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i]!;
+    if (arg === "--yes" || arg === "-y") {
+      yes = true;
+      continue;
+    }
+    if (arg !== "--agent") {
+      remaining.push(arg);
+      continue;
+    }
+
+    const agent = args[i + 1];
+    if (!agent) {
+      return { agents, vaultDir: remaining[0], yes, error: "--agent requires a value" };
+    }
+    if (!isAgentAdapter(agent)) {
+      return { agents, vaultDir: remaining[0], yes, error: `unknown agent "${agent}"` };
+    }
+    agents.push(agent);
+    i += 1;
+  }
+
+  return { agents, vaultDir: remaining[0], yes, error: null };
 }
 
 function isAgentAdapter(value: string): value is AgentAdapter {

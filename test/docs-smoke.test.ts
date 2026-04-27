@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 
 const commands = [
   "notewell init",
+  "notewell onboard",
   "notewell index",
   "notewell search",
   "notewell lint",
