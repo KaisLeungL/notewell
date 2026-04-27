@@ -93,6 +93,12 @@ describe("buildIndex", () => {
 
     const index = buildIndex(vaultDir);
 
+    const architecturePage = index.pages.find(
+      (page) => page.slug === "wiki/architecture",
+    );
+    expect(architecturePage?.links).not.toContain("raw/assets/architecture.png");
+    expect(architecturePage?.links).not.toContain("raw/assets/spec.pdf");
+
     expect(index.assets).toHaveLength(2);
     const architecture = index.assets.find(
       (asset) => asset.path === "raw/assets/architecture.png",
@@ -123,5 +129,11 @@ describe("buildIndex", () => {
       readFileSync(path.join(vaultDir, ".notewell", "manifest.json"), "utf8"),
     ) as { asset_count?: number };
     expect(manifest.asset_count).toBe(2);
+
+    const backlinks = JSON.parse(
+      readFileSync(path.join(vaultDir, ".notewell", "backlinks.json"), "utf8"),
+    ) as Record<string, string[]>;
+    expect(backlinks).not.toHaveProperty("raw/assets/architecture.png");
+    expect(backlinks).not.toHaveProperty("raw/assets/spec.pdf");
   });
 });

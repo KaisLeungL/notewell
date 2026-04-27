@@ -118,7 +118,11 @@ export function extractWikiLinks(markdown: string): string[] {
     if (!target) {
       continue;
     }
-    links.add(slugFromWikiPath(normalizePath(target)));
+    const normalizedTarget = normalizePath(target);
+    if (normalizedTarget.startsWith("raw/assets/")) {
+      continue;
+    }
+    links.add(slugFromWikiPath(normalizedTarget));
   }
   return [...links].sort((a, b) => a.localeCompare(b));
 }
