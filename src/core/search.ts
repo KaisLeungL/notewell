@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import type { IndexRecord, SearchResult, WikiIndex } from "./types.js";
+import type {
+  AssetRecord,
+  AssetSearchResult,
+  IndexRecord,
+  PageSearchResult,
+  SearchResult,
+  WikiIndex,
+} from "./types.js";
 
 export function searchIndex(vaultDir: string, query: string): SearchResult[] {
   const terms = tokenize(query);
@@ -10,9 +17,16 @@ export function searchIndex(vaultDir: string, query: string): SearchResult[] {
   }
 
   const index = readIndex(vaultDir);
-  return index.pages
-    .map((page) => scorePage(vaultDir, page, terms))
-    .filter((result): result is SearchResult => result !== null)
+  const assetsByPageSlug = groupAssetsByPageSlug(index.assets);
+  const pagesBySlug = new Map(index.pages.map((page) => [page.slug, page]));
+  return [
+    ...index.pages
+      .map((page) => scorePage(vaultDir, page, terms, assetsByPageSlug))
+      .filter((result): result is PageSearchResult => result !== null),
+    ...index.assets
+      .map((asset) => scoreAsset(asset, terms, pagesBySlug))
+      .filter((result): result is AssetSearchResult => result !== null),
+  ]
     .sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
 }
 
@@ -25,7 +39,8 @@ function scorePage(
   vaultDir: string,
   page: IndexRecord,
   terms: string[],
-): SearchResult | null {
+  assetsByPageSlug: Map<string, AssetRecord[]>,
+): PageSearchResult | null {
   let score = 0;
   const reasons: string[] = [];
 
@@ -59,13 +74,88 @@ function scorePage(
   }
 
   return {
+    kind: "page",
     slug: page.slug,
     path: page.path,
     title: page.title,
     summary: page.summary,
     score,
     reasons,
+    assets: assetsByPageSlug.get(page.slug) ?? [],
   };
+}
+
+function scoreAsset(
+  asset: AssetRecord,
+  terms: string[],
+  pagesBySlug: Map<string, IndexRecord>,
+): AssetSearchResult | null {
+  let score = 0;
+  const reasons: string[] = [];
+
+  if (containsAll(asset.title, terms)) {
+    score += 90;
+    reasons.push("title match");
+  }
+  if (containsAll(asset.path, terms)) {
+    score += 50;
+    reasons.push("path match");
+  }
+  if (asset.references.some((reference) => containsAll(reference.label, terms))) {
+    score += 80;
+    reasons.push("label match");
+  }
+
+  const referencingPages = asset.referenced_by
+    .map((slug) => pagesBySlug.get(slug))
+    .filter((page): page is IndexRecord => page !== undefined);
+
+  if (referencingPages.some((page) => containsAll(page.title, terms))) {
+    score += 30;
+    reasons.push("referencing page title match");
+  }
+  if (referencingPages.some((page) => containsAll(page.summary, terms))) {
+    score += 20;
+    reasons.push("referencing page summary match");
+  }
+  if (
+    referencingPages.some((page) =>
+      page.tags.some((tag) => containsAll(tag, terms)),
+    )
+  ) {
+    score += 20;
+    reasons.push("referencing page tag match");
+  }
+  if (score > 0 && asset.referenced_by.length > 0) {
+    score += Math.min(asset.referenced_by.length * 3, 12);
+    reasons.push("reference boost");
+  }
+
+  if (score === 0) {
+    return null;
+  }
+
+  return {
+    kind: "asset",
+    path: asset.path,
+    title: asset.title,
+    asset_kind: asset.asset_kind,
+    score,
+    reasons,
+    references: asset.references,
+  };
+}
+
+function groupAssetsByPageSlug(assets: AssetRecord[]): Map<string, AssetRecord[]> {
+  const assetsByPageSlug = new Map<string, AssetRecord[]>();
+  for (const asset of assets) {
+    for (const pageSlug of asset.referenced_by) {
+      const pageAssets = assetsByPageSlug.get(pageSlug) ?? [];
+      pageAssets.push(asset);
+      assetsByPageSlug.set(pageSlug, pageAssets);
+    }
+  }
+  return assetsByPageSlug;
 }
 
 function bodyMatches(

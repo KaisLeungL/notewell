@@ -174,8 +174,9 @@ export async function run(argv: string[]): Promise<number> {
         ? searchOperation(vaultDir, query)
         : await getSearchBackend(backend).search(vaultDir, query);
     for (const result of results) {
+      const displayPath = result.kind === "page" ? result.slug : result.path;
       process.stdout.write(
-        `${result.slug}\t${result.score}\t${result.reasons.join(", ")}\t${result.title}\n`,
+        `${displayPath}\t${result.score}\t${result.reasons.join(", ")}\t${result.title}\n`,
       );
     }
     return 0;

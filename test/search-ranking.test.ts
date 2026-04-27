@@ -67,11 +67,12 @@ compose body match
     buildIndex(vaultDir);
 
     const results = searchIndex(vaultDir, "compose");
+    const pageResults = results.filter((result) => result.kind === "page");
 
-    expect(results[0]?.slug).toBe("wiki/popular");
-    expect(results[0]?.reasons).toContain("backlink boost");
-    expect(results.find((result) => result.slug === "wiki/popular")?.score).toBeGreaterThan(
-      results.find((result) => result.slug === "wiki/quiet")?.score ?? 0,
+    expect(pageResults[0]?.slug).toBe("wiki/popular");
+    expect(pageResults[0]?.reasons).toContain("backlink boost");
+    expect(pageResults.find((result) => result.slug === "wiki/popular")?.score).toBeGreaterThan(
+      pageResults.find((result) => result.slug === "wiki/quiet")?.score ?? 0,
     );
   });
 });

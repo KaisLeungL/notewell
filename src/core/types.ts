@@ -68,14 +68,28 @@ export type WikiIndex = {
   generated_at: string;
 };
 
-export type SearchResult = {
+export type PageSearchResult = {
+  kind: "page";
   slug: string;
   path: string;
   title: string;
   summary: string | null;
   score: number;
   reasons: string[];
+  assets: AssetRecord[];
 };
+
+export type AssetSearchResult = {
+  kind: "asset";
+  path: string;
+  title: string;
+  asset_kind: AssetKind;
+  score: number;
+  reasons: string[];
+  references: AssetReference[];
+};
+
+export type SearchResult = PageSearchResult | AssetSearchResult;
 
 export type LintFinding = {
   severity: "error" | "warning";
