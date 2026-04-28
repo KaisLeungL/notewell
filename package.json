@@ -1,6 +1,6 @@
 {
   "name": "notewell",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A lightweight Markdown-first personal LLM wiki CLI",
   "type": "module",
   "bin": {
