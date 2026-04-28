@@ -145,6 +145,17 @@ describe("cli help", () => {
     ).toBe(true);
   });
 
+  test("initializes a selected management guide", async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-guide-"));
+
+    const code = await run(["init", "--guide", "general", vaultDir]);
+
+    expect(code).toBe(0);
+    expect(
+      existsSync(path.join(vaultDir, "wiki/guides/knowledge-management.md")),
+    ).toBe(true);
+  });
+
   test("runs onboard in yes mode", async () => {
     const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-onboard-"));
 
@@ -153,6 +164,17 @@ describe("cli help", () => {
     expect(code).toBe(0);
     expect(
       existsSync(path.join(vaultDir, ".cursor/skills/notewell-query/SKILL.md")),
+    ).toBe(true);
+  });
+
+  test("runs onboard in yes mode with a selected management guide", async () => {
+    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-onboard-guide-"));
+
+    const code = await run(["onboard", "--yes", "--guide", "general", vaultDir]);
+
+    expect(code).toBe(0);
+    expect(
+      existsSync(path.join(vaultDir, "wiki/guides/knowledge-management.md")),
     ).toBe(true);
   });
 

@@ -59,6 +59,30 @@ describe("initVault", () => {
     expect(result.skipped).toContain("wiki/index.md");
   });
 
+  test("creates selected knowledge management guide", () => {
+    const vaultDir = createTempDir();
+
+    const result = initVault(vaultDir, { guide: "general" });
+
+    expect(result.created).toContain("wiki/guides/knowledge-management.md");
+    expect(
+      readFileSync(
+        path.join(vaultDir, "wiki/guides/knowledge-management.md"),
+        "utf8",
+      ),
+    ).toContain("Knowledge Lifecycle");
+  });
+
+  test("does not create guide when no guide is selected", () => {
+    const vaultDir = createTempDir();
+
+    initVault(vaultDir);
+
+    expect(
+      existsSync(path.join(vaultDir, "wiki/guides/knowledge-management.md")),
+    ).toBe(false);
+  });
+
   test("creates Claude skills when requested", () => {
     const vaultDir = createTempDir();
 
@@ -68,6 +92,7 @@ describe("initVault", () => {
       ".claude/skills/notewell-ingest/SKILL.md",
       ".claude/skills/notewell-query/SKILL.md",
       ".claude/skills/notewell-lint/SKILL.md",
+      ".claude/skills/notewell-organize/SKILL.md",
     ];
     expect(result.created).toEqual(expect.arrayContaining(skillPaths));
     for (const skillPath of skillPaths) {
@@ -91,6 +116,12 @@ describe("initVault", () => {
         "utf8",
       ),
     ).toContain("notewell-lint");
+    expect(
+      readFileSync(
+        path.join(vaultDir, ".claude/skills/notewell-organize/SKILL.md"),
+        "utf8",
+      ),
+    ).toContain("notewell-organize");
   });
 
   test("creates independent skill directories for multiple agents", () => {
@@ -105,6 +136,9 @@ describe("initVault", () => {
         ".claude/skills/notewell-query/SKILL.md",
         ".cursor/skills/notewell-query/SKILL.md",
         ".codex/skills/notewell-query/SKILL.md",
+        ".claude/skills/notewell-organize/SKILL.md",
+        ".cursor/skills/notewell-organize/SKILL.md",
+        ".codex/skills/notewell-organize/SKILL.md",
       ]),
     );
     expect(

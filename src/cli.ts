@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { resolve, dirname } from "node:path";
 import process from "node:process";
 
-import { initVault, type AgentAdapter } from "./core/init.js";
+import { initVault, type AgentAdapter, type KnowledgeGuide } from "./core/init.js";
 import { runOnboarding } from "./core/onboard.js";
 import {
   doctorOperation,
@@ -29,6 +29,7 @@ const { version: VERSION } = JSON.parse(
   readFileSync(resolve(__dirname, "../package.json"), "utf8")
 );
 const SUPPORTED_AGENT_ADAPTERS = ["claude", "cursor", "codex"] as const;
+const SUPPORTED_GUIDES = ["general"] as const;
 
 const COMMANDS = [
   {
@@ -120,7 +121,10 @@ export async function run(argv: string[]): Promise<number> {
       process.stderr.write(`notewell: ${parsed.error}\n`);
       return 1;
     }
-    const result = initVault(parsed.vaultDir, { agents: parsed.agents });
+    const result = initVault(parsed.vaultDir, {
+      agents: parsed.agents,
+      ...(parsed.guide ? { guide: parsed.guide } : {}),
+    });
     process.stdout.write(
       `Initialized notewell vault at ${parsed.vaultDir}\n` +
         `Created: ${result.created.length}\n` +
@@ -138,6 +142,7 @@ export async function run(argv: string[]): Promise<number> {
     const result = await runOnboarding({
       yes: parsed.yes,
       agents: parsed.agents,
+      ...(parsed.guide ? { guide: parsed.guide } : {}),
       ...(parsed.vaultDir ? { vaultDir: parsed.vaultDir } : {}),
     });
     if (result.cancelled) {
@@ -229,13 +234,37 @@ export async function run(argv: string[]): Promise<number> {
 
 function parseInitArgs(args: string[]): {
   agents: AgentAdapter[];
+  guide: KnowledgeGuide | undefined;
   vaultDir: string;
   error: string | null;
 } {
   const agents: AgentAdapter[] = [];
   const remaining: string[] = [];
+  let guide: KnowledgeGuide | undefined;
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i]!;
+    if (arg === "--guide") {
+      const guideValue = args[i + 1];
+      if (!guideValue) {
+        return {
+          agents,
+          guide,
+          vaultDir: remaining[0] ?? process.cwd(),
+          error: "--guide requires a value",
+        };
+      }
+      if (!isSupportedGuide(guideValue)) {
+        return {
+          agents,
+          guide,
+          vaultDir: remaining[0] ?? process.cwd(),
+          error: `unknown guide "${guideValue}"`,
+        };
+      }
+      guide = guideValue;
+      i += 1;
+      continue;
+    }
     if (arg !== "--agent") {
       remaining.push(arg);
       continue;
@@ -245,6 +274,7 @@ function parseInitArgs(args: string[]): {
     if (!agent) {
       return {
         agents,
+        guide,
         vaultDir: remaining[0] ?? process.cwd(),
         error: "--agent requires a value",
       };
@@ -252,6 +282,7 @@ function parseInitArgs(args: string[]): {
     if (!isAgentAdapter(agent)) {
       return {
         agents,
+        guide,
         vaultDir: remaining[0] ?? process.cwd(),
         error: `unknown agent "${agent}"`,
       };
@@ -262,6 +293,7 @@ function parseInitArgs(args: string[]): {
 
   return {
     agents,
+    guide,
     vaultDir: remaining[0] ?? process.cwd(),
     error: null,
   };
@@ -269,18 +301,44 @@ function parseInitArgs(args: string[]): {
 
 function parseOnboardArgs(args: string[]): {
   agents: AgentAdapter[];
+  guide: KnowledgeGuide | undefined;
   vaultDir: string | undefined;
   yes: boolean;
   error: string | null;
 } {
   const agents: AgentAdapter[] = [];
   const remaining: string[] = [];
+  let guide: KnowledgeGuide | undefined;
   let yes = false;
 
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i]!;
     if (arg === "--yes" || arg === "-y") {
       yes = true;
+      continue;
+    }
+    if (arg === "--guide") {
+      const guideValue = args[i + 1];
+      if (!guideValue) {
+        return {
+          agents,
+          guide,
+          vaultDir: remaining[0],
+          yes,
+          error: "--guide requires a value",
+        };
+      }
+      if (!isSupportedGuide(guideValue)) {
+        return {
+          agents,
+          guide,
+          vaultDir: remaining[0],
+          yes,
+          error: `unknown guide "${guideValue}"`,
+        };
+      }
+      guide = guideValue;
+      i += 1;
       continue;
     }
     if (arg !== "--agent") {
@@ -290,20 +348,24 @@ function parseOnboardArgs(args: string[]): {
 
     const agent = args[i + 1];
     if (!agent) {
-      return { agents, vaultDir: remaining[0], yes, error: "--agent requires a value" };
+      return { agents, guide, vaultDir: remaining[0], yes, error: "--agent requires a value" };
     }
     if (!isAgentAdapter(agent)) {
-      return { agents, vaultDir: remaining[0], yes, error: `unknown agent "${agent}"` };
+      return { agents, guide, vaultDir: remaining[0], yes, error: `unknown agent "${agent}"` };
     }
     agents.push(agent);
     i += 1;
   }
 
-  return { agents, vaultDir: remaining[0], yes, error: null };
+  return { agents, guide, vaultDir: remaining[0], yes, error: null };
 }
 
 function isAgentAdapter(value: string): value is AgentAdapter {
   return SUPPORTED_AGENT_ADAPTERS.includes(value as AgentAdapter);
+}
+
+function isSupportedGuide(value: string): value is KnowledgeGuide {
+  return SUPPORTED_GUIDES.includes(value as (typeof SUPPORTED_GUIDES)[number]);
 }
 
 function isDirectInvocation(): boolean {

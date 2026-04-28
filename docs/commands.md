@@ -14,22 +14,46 @@ notewell init --agent codex ~/vault
 notewell init --agent claude --agent cursor ~/vault
 ```
 
-Each selected adapter receives `notewell-ingest`, `notewell-query`, and
-`notewell-lint` skills. Skills are the agent entry point; CLI commands are helper
-tools used by those skills.
+Each selected adapter receives `notewell-organize`, `notewell-ingest`,
+`notewell-query`, and `notewell-lint` skills. Skills are the agent entry point;
+CLI commands are helper tools used by those skills.
+
+`--guide general` creates the user-facing lifecycle guide:
+
+```bash
+notewell init --guide general ~/vault
+```
+
+The guide is written to `wiki/guides/knowledge-management.md` and explains the
+Knowledge Lifecycle:
+
+```text
+Capture -> Organize -> Ingest -> Distill -> Query -> Maintain
+```
 
 ## `notewell onboard [dir]`
 
 Starts an interactive setup guide for choosing the vault directory and agent
-skills. It calls the same initializer as `notewell init` after confirmation.
+skills, then asks which knowledge management guide to generate. It calls the
+same initializer as `notewell init` after confirmation.
 
 ```bash
 notewell onboard ~/vault
 notewell onboard --agent cursor ~/vault
+notewell onboard --yes --guide general ~/vault
 notewell onboard --yes --agent claude --agent cursor ~/vault
 ```
 
-Use `--yes` for non-interactive setup with the provided path and agent flags.
+Use `--yes` for non-interactive setup with the provided path, agent flags, and
+default guide. Today `general` is the supported non-interactive guide value.
+
+## `notewell-organize` skill
+
+`notewell-organize` is an agent skill rather than a standalone CLI command. It
+scans `raw/`, especially `raw/inbox/`, proposes a move/rename plan, asks the user
+to approve it, and then applies only approved raw file moves. It does not ingest
+content. After organization, use `notewell-ingest` to create or update
+`wiki/sources/<raw relative path>.md` pages.
 
 ## `notewell index [dir]`
 

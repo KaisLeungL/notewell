@@ -83,4 +83,19 @@ describe("docs", () => {
     expect(docs).toContain("Obsidian");
     expect(docs).toContain("standard Markdown");
   });
+
+  test("document single vault knowledge lifecycle and organize skill", () => {
+    const docs = [
+      readFileSync("README.md", "utf8"),
+      readFileSync("README.zh-CN.md", "utf8"),
+      readFileSync("docs/quickstart.md", "utf8"),
+      readFileSync("docs/agent-workflows.md", "utf8"),
+      readFileSync("docs/commands.md", "utf8"),
+    ].join("\n");
+
+    expect(docs).toContain("notewell-organize");
+    expect(docs).toContain("raw/inbox/");
+    expect(docs).toContain("Knowledge Lifecycle");
+    expect(docs).toContain("wiki/guides/knowledge-management.md");
+  });
 });

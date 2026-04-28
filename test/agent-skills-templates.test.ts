@@ -4,7 +4,12 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 
 const agents = ["claude", "cursor", "codex"] as const;
-const skills = ["notewell-ingest", "notewell-query", "notewell-lint"] as const;
+const skills = [
+  "notewell-ingest",
+  "notewell-query",
+  "notewell-lint",
+  "notewell-organize",
+] as const;
 
 function readSkill(skill: (typeof skills)[number]): string {
   return readFileSync(
@@ -84,5 +89,15 @@ describe("agent skill templates", () => {
     expect(template).toContain("orphan pages");
     expect(template).toContain("notewell lint .");
     expect(template).toContain("notewell index .");
+  });
+
+  test("organize skill requires approval before raw file changes", () => {
+    const template = readSkill("notewell-organize");
+
+    expect(template).toContain("name: notewell-organize");
+    expect(template).toContain("raw/inbox/");
+    expect(template).toContain("proposed move/rename plan");
+    expect(template).toContain("Ask the user to approve");
+    expect(template).toContain("Never delete raw files automatically");
   });
 });

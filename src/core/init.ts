@@ -16,9 +16,16 @@ export type InitVaultResult = {
 };
 
 export type AgentAdapter = "claude" | "cursor" | "codex";
+export type KnowledgeGuide =
+  | "general"
+  | "programmer"
+  | "reading"
+  | "diary"
+  | "fragments";
 
 export type InitVaultOptions = {
   agents?: AgentAdapter[];
+  guide?: KnowledgeGuide;
 };
 
 type TemplateFile = {
@@ -33,21 +40,32 @@ const TEMPLATE_FILES: readonly TemplateFile[] = [
   templateFile("wiki/log.md"),
 ];
 
+const GUIDE_FILES: Record<KnowledgeGuide, TemplateFile> = {
+  general: templateFile("wiki/guides/knowledge-management.md"),
+  programmer: templateFile("wiki/guides/knowledge-management.md"),
+  reading: templateFile("wiki/guides/knowledge-management.md"),
+  diary: templateFile("wiki/guides/knowledge-management.md"),
+  fragments: templateFile("wiki/guides/knowledge-management.md"),
+};
+
 const AGENT_SKILL_FILES: Record<AgentAdapter, readonly TemplateFile[]> = {
   claude: [
     agentSkillFile("claude", "notewell-ingest"),
     agentSkillFile("claude", "notewell-query"),
     agentSkillFile("claude", "notewell-lint"),
+    agentSkillFile("claude", "notewell-organize"),
   ],
   cursor: [
     agentSkillFile("cursor", "notewell-ingest"),
     agentSkillFile("cursor", "notewell-query"),
     agentSkillFile("cursor", "notewell-lint"),
+    agentSkillFile("cursor", "notewell-organize"),
   ],
   codex: [
     agentSkillFile("codex", "notewell-ingest"),
     agentSkillFile("codex", "notewell-query"),
     agentSkillFile("codex", "notewell-lint"),
+    agentSkillFile("codex", "notewell-organize"),
   ],
 };
 
@@ -68,7 +86,7 @@ export function initVault(
     created.push(dir);
   }
 
-  for (const file of selectedTemplateFiles(options.agents ?? [])) {
+  for (const file of selectedTemplateFiles(options.agents ?? [], options.guide)) {
     const target = path.join(vaultDir, file.target);
     if (existsSync(target)) {
       skipped.push(file.target);
@@ -82,9 +100,13 @@ export function initVault(
   return { created, skipped };
 }
 
-function selectedTemplateFiles(agents: AgentAdapter[]): readonly TemplateFile[] {
+function selectedTemplateFiles(
+  agents: AgentAdapter[],
+  guide?: KnowledgeGuide,
+): readonly TemplateFile[] {
   return [
     ...TEMPLATE_FILES,
+    ...(guide ? [GUIDE_FILES[guide]] : []),
     ...agents.flatMap((agent) => AGENT_SKILL_FILES[agent]),
   ];
 }

@@ -60,6 +60,26 @@ CLAUDE.md   Claude-specific guidance.
 The cache is derived. Delete `.notewell/` whenever you want; `notewell index`
 rebuilds it from Markdown.
 
+## Knowledge Lifecycle
+
+Notewell keeps one vault model for every scenario:
+
+```text
+Capture -> Organize -> Ingest -> Distill -> Query -> Maintain
+```
+
+Capture fast into `raw/`, especially `raw/inbox/` when the final folder is not
+obvious. Use `notewell-organize` to propose a move/rename plan before ingestion;
+the organize skill must ask before moving or renaming raw files and never deletes
+them automatically. Use `notewell-ingest` after organization to create
+`wiki/sources/<raw relative path>.md` source pages, then promote only durable
+knowledge into `wiki/concepts/`, `wiki/analyses/`, `wiki/questions/`, or
+`wiki/playbooks/`.
+
+`notewell onboard` can generate `wiki/guides/knowledge-management.md`, a
+user-facing guide for this lifecycle. Non-interactive setup can use
+`notewell init --guide general`.
+
 ## Referenced Assets
 
 Store screenshots, diagrams, PDFs, and other attachments under `raw/assets/`.
@@ -115,8 +135,8 @@ node dist/cli.js doctor ~/notewell-vault
 ```
 
 **Non-interactive:** to create a vault without the wizard, use
-`notewell init` and optional `notewell init --agent <claude|cursor|codex>` instead
-of `onboard`.
+`notewell init`, optional `notewell init --agent <claude|cursor|codex>`, and
+optional `notewell init --guide general` instead of `onboard`.
 
 If the package is installed as a binary, use `notewell` instead of
 `node dist/cli.js`.
@@ -166,13 +186,16 @@ topic.
 - `notewell init [dir]`: create `raw/`, `wiki/`, `.notewell/`, root agent
   guides, and starter templates without overwriting existing files.
 - `notewell onboard [dir]`: guide vault initialization with an interactive
-  prompt for the target path and agent skills. Use `--yes` for defaults.
+  prompt for the target path, agent skills, and knowledge management guide. Use
+  `--yes` for defaults.
+- `notewell init --guide general [dir]`: also create
+  `wiki/guides/knowledge-management.md`.
 - `notewell init --agent claude [dir]`: also create Claude skills for the
-  Notewell ingest, query, and lint workflows.
+  Notewell organize, ingest, query, and lint workflows.
 - `notewell init --agent cursor [dir]`: also create Cursor skills for the
-  Notewell ingest, query, and lint workflows.
+  Notewell organize, ingest, query, and lint workflows.
 - `notewell init --agent codex [dir]`: also create Codex skills for the
-  Notewell ingest, query, and lint workflows.
+  Notewell organize, ingest, query, and lint workflows.
 - `notewell index [dir]`: scan `wiki/**/*.md`, parse frontmatter, extract
   wikilinks and referenced assets, build backlinks, and write JSON cache files.
 - `notewell search "query" [dir]`: search `.notewell/index.json` and print
@@ -189,15 +212,18 @@ topic.
 
 ## Recommended Workflow
 
-1. Put original material in `raw/`, with attachments in `raw/assets/`.
-2. Write durable summaries, concepts, analyses, questions, and playbooks in
-   `wiki/`.
-3. Link related notes with wikilinks such as
+1. Capture original material in `raw/` or `raw/inbox/`, with attachments in
+   `raw/assets/`.
+2. Organize raw files with an approved `notewell-organize` plan when the inbox
+   grows.
+3. Ingest raw files into `wiki/sources/`, then write durable summaries,
+   concepts, analyses, questions, and playbooks in `wiki/`.
+4. Link related notes with wikilinks such as
    `[[wiki/concepts/recomposition]]`.
-4. Run `notewell index .`.
-5. Run `notewell lint .`.
-6. Use `notewell search "query" .` when an agent needs retrieval context.
-7. Record meaningful changes with `notewell log --type note "message" .`.
+5. Run `notewell index .`.
+6. Run `notewell lint .`.
+7. Use `notewell search "query" .` when an agent needs retrieval context.
+8. Record meaningful changes with `notewell log --type note "message" .`.
 
 ## Agent Skills
 
@@ -210,9 +236,10 @@ tools that skills can call for indexing, search, linting, and logging.
 notewell init --agent claude --agent cursor --agent codex ~/notewell-vault
 ```
 
-Each selected adapter gets complete `notewell-ingest`, `notewell-query`, and
-`notewell-lint` skills. `notewell-query` includes the hard rule: Search the
-vault before answering.
+Each selected adapter gets complete `notewell-organize`, `notewell-ingest`,
+`notewell-query`, and `notewell-lint` skills. `notewell-organize` plans raw file
+cleanup before ingestion and requires approval before moves or renames.
+`notewell-query` includes the hard rule: Search the vault before answering.
 
 ## Frontmatter
 

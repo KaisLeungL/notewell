@@ -1,10 +1,22 @@
 import path from "node:path";
 
-import { checkbox, confirm, input } from "@inquirer/prompts";
+import { checkbox, confirm, input, select } from "@inquirer/prompts";
 
-import { initVault, type AgentAdapter, type InitVaultResult } from "./init.js";
+import {
+  initVault,
+  type AgentAdapter,
+  type InitVaultResult,
+  type KnowledgeGuide,
+} from "./init.js";
 
 const AGENT_CHOICES: AgentAdapter[] = ["claude", "cursor", "codex"];
+const GUIDE_CHOICES: Array<{ name: string; value: KnowledgeGuide }> = [
+  { name: "General knowledge lifecycle guide", value: "general" },
+  { name: "Programmer technical learning guide", value: "programmer" },
+  { name: "Reading notes guide", value: "reading" },
+  { name: "Diary and reflection guide", value: "diary" },
+  { name: "Fragment knowledge guide", value: "fragments" },
+];
 
 export type OnboardPrompts = {
   input(options: { message: string; default?: string }): Promise<string>;
@@ -12,6 +24,11 @@ export type OnboardPrompts = {
     message: string;
     choices: Array<{ name: string; value: AgentAdapter; checked?: boolean }>;
   }): Promise<AgentAdapter[]>;
+  select(options: {
+    message: string;
+    choices: Array<{ name: string; value: KnowledgeGuide }>;
+    default?: KnowledgeGuide;
+  }): Promise<KnowledgeGuide>;
   confirm(options: { message: string; default?: boolean }): Promise<boolean>;
 };
 
@@ -21,12 +38,14 @@ export type RunOnboardingOptions = {
   yes?: boolean;
   vaultDir?: string;
   agents?: AgentAdapter[];
+  guide?: KnowledgeGuide;
 };
 
 export type OnboardingResult = {
   cancelled: boolean;
   vaultDir: string;
   agents: AgentAdapter[];
+  guide: KnowledgeGuide;
   initResult: InitVaultResult | null;
 };
 
@@ -56,6 +75,14 @@ export async function runOnboarding(
         })),
       });
 
+  const guide = options.yes
+    ? (options.guide ?? "general")
+    : await prompts.select({
+        message: "Which knowledge management guide should be generated?",
+        choices: GUIDE_CHOICES,
+        default: options.guide ?? "general",
+      });
+
   const shouldInitialize = options.yes
     ? true
     : await prompts.confirm({
@@ -64,14 +91,15 @@ export async function runOnboarding(
       });
 
   if (!shouldInitialize) {
-    return { cancelled: true, vaultDir, agents, initResult: null };
+    return { cancelled: true, vaultDir, agents, guide, initResult: null };
   }
 
   return {
     cancelled: false,
     vaultDir,
     agents,
-    initResult: initVault(vaultDir, { agents }),
+    guide,
+    initResult: initVault(vaultDir, { agents, guide }),
   };
 }
 
@@ -79,6 +107,7 @@ function createInquirerPrompts(): OnboardPrompts {
   return {
     input,
     checkbox,
+    select,
     confirm,
   };
 }
