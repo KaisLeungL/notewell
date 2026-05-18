@@ -1,0 +1,14 @@
+# Local drafts not for npm publish
+docs/plans/
+
+# Local OCR/screenshot experiment artifacts
+extensions/
+scripts/
+output-ocr/
+output-ocr-eng/
+*.traineddata
+SESSION_CONTEXT.md
+2026-*_mianshiya_*.json
+
+# Worktree dirs
+.worktrees/

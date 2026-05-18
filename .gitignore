@@ -13,3 +13,15 @@ coverage/
 # Local notewell test vaults (do not commit user data)
 /tmp-vault/
 /scratch/
+
+# Local OCR/screenshot experiment artifacts (not part of npm package)
+extensions/
+scripts/
+output-ocr/
+output-ocr-eng/
+*.traineddata
+
+# Local working drafts / scratch
+SESSION_CONTEXT.md
+2026-*_mianshiya_*.json
+docs/plans/
