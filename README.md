@@ -65,16 +65,22 @@ rebuilds it from Markdown.
 Notewell keeps one vault model for every scenario:
 
 ```text
-Capture -> Organize -> Ingest -> Distill -> Query -> Maintain
+Capture -> [Organize?] -> Ingest -> Distill -> Query -> Maintain
 ```
 
 Capture fast into `raw/`, especially `raw/inbox/` when the final folder is not
-obvious. Use `notewell-organize` to propose a move/rename plan before ingestion;
-the organize skill must ask before moving or renaming raw files and never deletes
-them automatically. Use `notewell-ingest` after organization to create
-`wiki/sources/<raw relative path>.md` source pages, then promote only durable
-knowledge into `wiki/concepts/`, `wiki/analyses/`, `wiki/questions/`, or
+obvious. **`notewell-ingest` works directly on any path under `raw/`, including
+`raw/inbox/`** — it does not require prior organization. Use `notewell-ingest`
+to create `wiki/sources/<raw relative path>.md` source pages, then promote only
+durable knowledge into `wiki/concepts/`, `wiki/analyses/`, `wiki/questions/`, or
 `wiki/playbooks/`.
+
+`notewell-organize` is **optional**: a tidy-up step you trigger when `raw/`
+becomes hard to scan, not a precondition for ingestion. The organize skill
+proposes a move/rename plan, asks before applying it, and never deletes raw
+files. Karpathy's LLM Wiki pattern keeps `raw/` immutable and lets the wiki
+layer carry the structure — organize is a notewell convenience, not part of
+the original pattern.
 
 `notewell onboard` can generate `wiki/guides/knowledge-management.md`, a
 user-facing guide for this lifecycle. Non-interactive setup can use

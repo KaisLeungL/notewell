@@ -6,11 +6,14 @@ user-invocable: true
 
 # Notewell Organize
 
-Use this skill when the user asks to organize, sort, rename, file, clean up, or
-prepare raw material before ingestion.
+Use this skill when the user explicitly asks to organize, sort, rename, file,
+or clean up raw material — usually because `raw/` has grown noisy.
 
-The goal is to make `raw/` stable enough for `notewell-ingest` to create source
-pages. This skill plans raw file organization; it does not replace ingestion.
+**This skill is optional, not a precondition for `notewell-ingest`.** Karpathy's
+LLM Wiki pattern keeps `raw/` immutable and lets the wiki layer carry structure.
+`notewell-ingest` already accepts any path under `raw/` including `raw/inbox/`.
+Trigger organize only when the user wants to tidy up — never auto-run before
+ingest, and never tell the user "ingest needs me to run first".
 
 ## Safety Contract
 

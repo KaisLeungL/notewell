@@ -61,15 +61,20 @@ Markdown 重新生成。
 Notewell 对所有场景保持同一个 vault 模型：
 
 ```text
-Capture -> Organize -> Ingest -> Distill -> Query -> Maintain
+Capture -> [Organize?] -> Ingest -> Distill -> Query -> Maintain
 ```
 
 快速捕获时把资料放入 `raw/`，暂时无法判断长期目录时先放 `raw/inbox/`。
-在 ingest 前，可以用 `notewell-organize` 检查 inbox 和 raw 目录，并生成
-proposed move/rename plan；organize skill 必须先询问用户确认，才能移动或重命名
-raw 文件，且绝不会自动删除 raw 文件。随后用 `notewell-ingest` 为 raw 文件创建
+**`notewell-ingest` 可以直接处理 `raw/` 下任意路径（包括 `raw/inbox/`），不依赖
+预先 organize**。直接用 `notewell-ingest` 为 raw 文件生成
 `wiki/sources/<raw relative path>.md` 来源页，再只把长期可复用的知识提升到
 `wiki/concepts/`、`wiki/analyses/`、`wiki/questions/` 或 `wiki/playbooks/`。
+
+`notewell-organize` 是**可选**步骤：当 `raw/` 文件多到难以浏览时再触发，
+不是 ingest 的前置条件。organize skill 会先生成 proposed move/rename plan，
+等用户批准后才移动文件，且绝不自动删除。Karpathy 的 LLM Wiki 思想主张
+raw 不可变、wiki 层承载结构——organize 是 notewell 自带的便利工具，
+不属于原始 LLM Wiki 模式。
 
 `notewell onboard` 会选择并生成 `wiki/guides/knowledge-management.md`，说明这套
 生命周期。非交互初始化可使用 `notewell init --guide general`。

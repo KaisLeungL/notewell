@@ -12,18 +12,26 @@ The goal is to compile source material into the persistent wiki, not only to
 summarize a document. A good ingest creates searchable, linked knowledge that a
 human or LLM can use later.
 
+**Ingest is independent from `notewell-organize`.** You can — and should — ingest
+files that still live in `raw/inbox/`. Do not block ingestion on a prior
+organize step. Karpathy's LLM Wiki pattern keeps `raw/` immutable; the wiki
+layer (under `wiki/sources/<raw relative path>.md`) carries the structure.
+
 ## Before Writing
 
 1. Read `AGENTS.md` and, when present, `CLAUDE.md`.
 2. Confirm the ingestion scope. `/ingest` means scan eligible files under
-   `raw/`; `/ingest <path>` means process only that path.
+   `raw/` (including `raw/inbox/`); `/ingest <path>` means process only that
+   path.
 3. Treat implicit requests such as "ingest this into the knowledge base" or
    "import this article" as ingestion. Do not persist ordinary summaries unless
    the user asks.
 4. Skip already-ingested raw files that have matching
    `wiki/sources/<raw relative path>.md` pages.
 5. Treat `raw/` as immutable after source creation. Do not rewrite, move, or
-   archive source files unless the user explicitly asks.
+   archive source files unless the user explicitly asks. Files in
+   `raw/inbox/` ingest to `wiki/sources/inbox/<filename>.md` and stay in
+   `raw/inbox/` until the user separately asks to organize.
 
 ## Compile Each Source
 
