@@ -115,6 +115,34 @@ can include asset evidence when a matching page references relevant assets.
 
 ## Quickstart
 
+### Install the skills into an existing project (no CLI needed)
+
+The fastest way to add the Notewell skills to a project you already have is the
+[`skills`](https://github.com/vercel-labs/skills) installer. It copies the
+skill files into your agent's skill directory (e.g. `.claude/skills/`) without
+installing the `notewell` CLI:
+
+```bash
+# List the available skills
+npx skills add KaisLeungL/notewell --list
+
+# Install everything (recommended for a first run)
+npx skills add KaisLeungL/notewell --skill '*'
+
+# Or pick specific skills
+npx skills add KaisLeungL/notewell --skill notewell-setup --skill notewell-ingest
+```
+
+After installing, run the `notewell-setup` skill once — it bootstraps the vault
+(`raw/`, `wiki/`, `GOVERNANCE.md`) using plain file writes, so the other skills
+have the `GOVERNANCE.md` contract they read on every run. No npm package
+required.
+
+> Prefer the full CLI (interactive onboarding, search index, lint, doctor)?
+> Use the `onboard` / `init` flow below instead.
+
+### Use the CLI
+
 **Recommended:** use `notewell onboard` right after you install dependencies and
 build. It is the interactive installer: you pick the vault path and which agent
 skills to generate, and it initializes the vault for you. You do not need a
