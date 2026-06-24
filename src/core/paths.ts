@@ -2,8 +2,18 @@ import path from "node:path";
 
 import type { VaultLayer } from "./types.js";
 
+export const VAULT_DIR_NAME = "knowledge-vault";
+
 export function requiredVaultDirs(): string[] {
   return ["raw", "wiki", ".notewell"];
+}
+
+export function resolveVaultDir(projectRoot: string): string {
+  const resolved = path.resolve(projectRoot);
+  if (path.basename(resolved) === VAULT_DIR_NAME) {
+    return resolved;
+  }
+  return path.join(resolved, VAULT_DIR_NAME);
 }
 
 export function normalizePath(filePath: string): string {

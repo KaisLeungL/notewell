@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import { checkbox, confirm, input, select } from "@inquirer/prompts";
 
 import {
@@ -8,6 +6,7 @@ import {
   type InitVaultResult,
   type KnowledgeGuide,
 } from "./init.js";
+import { resolveVaultDir } from "./paths.js";
 
 const AGENT_CHOICES: AgentAdapter[] = ["claude", "cursor", "codex"];
 const GUIDE_CHOICES: Array<{ name: string; value: KnowledgeGuide }> = [
@@ -56,10 +55,10 @@ export async function runOnboarding(
   const prompts = options.prompts ?? createInquirerPrompts();
 
   const vaultDir = options.yes
-    ? path.resolve(options.vaultDir ?? cwd)
-    : path.resolve(
+    ? resolveVaultDir(options.vaultDir ?? cwd)
+    : resolveVaultDir(
         await prompts.input({
-          message: "Where should Notewell initialize the vault?",
+          message: "Where is your project root? (vault goes in knowledge-vault/)",
           default: options.vaultDir ?? cwd,
         }),
       );

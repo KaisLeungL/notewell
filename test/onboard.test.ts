@@ -5,13 +5,15 @@ import path from "node:path";
 import { describe, expect, test } from "vitest";
 
 import { runOnboarding, type OnboardPrompts } from "../src/core/onboard.js";
+import { resolveVaultDir } from "../src/core/paths.js";
 
 describe("runOnboarding", () => {
   test("creates a vault from interactive answers", async () => {
     const parentDir = mkdtempSync(path.join(tmpdir(), "notewell-onboard-"));
-    const vaultDir = path.join(parentDir, "vault");
+    const projectRoot = path.join(parentDir, "project");
+    const vaultDir = resolveVaultDir(projectRoot);
     const prompts: OnboardPrompts = {
-      input: async () => vaultDir,
+      input: async () => projectRoot,
       checkbox: async () => ["claude", "cursor"],
       select: async () => "general",
       confirm: async () => true,
@@ -50,7 +52,8 @@ describe("runOnboarding", () => {
   });
 
   test("uses defaults when yes mode is enabled", async () => {
-    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-onboard-yes-"));
+    const projectRoot = mkdtempSync(path.join(tmpdir(), "notewell-onboard-yes-"));
+    const vaultDir = resolveVaultDir(projectRoot);
     const prompts: OnboardPrompts = {
       input: async () => {
         throw new Error("input should not be called in yes mode");
@@ -68,9 +71,9 @@ describe("runOnboarding", () => {
 
     const result = await runOnboarding({
       prompts,
-      cwd: vaultDir,
+      cwd: projectRoot,
       yes: true,
-      vaultDir,
+      vaultDir: projectRoot,
       agents: ["claude", "cursor", "codex"],
     });
 

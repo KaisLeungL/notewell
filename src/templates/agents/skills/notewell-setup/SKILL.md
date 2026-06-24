@@ -25,27 +25,35 @@ alternative, but never block on it.
 
 ## Before Writing
 
-1. Confirm the vault root with the user (default: the current project root).
-2. Check what already exists. If `GOVERNANCE.md`, `raw/`, or `wiki/` are already
-   present, do NOT overwrite them — report what exists and stop, or only create
-   the missing pieces after the user confirms.
+1. Determine the project root with the user (default: the current project root).
+   The vault is **not** scattered across the project root — it lives in a single
+   `knowledge-vault/` subdirectory. All paths below are relative to
+   `<project root>/knowledge-vault/`, which is the **vault root**.
+   - If the project root already ends in `knowledge-vault`, use it directly
+     (do not nest a second `knowledge-vault/` inside it).
+2. Check what already exists. If `knowledge-vault/GOVERNANCE.md`,
+   `knowledge-vault/raw/`, or `knowledge-vault/wiki/` are already present, do NOT
+   overwrite them — report what exists and stop, or only create the missing
+   pieces after the user confirms.
 
 ## Create the Vault
 
-Create these directories at the vault root if missing:
+Create the `knowledge-vault/` directory at the project root, then these
+directories inside it if missing:
 
 ```
-raw/        ← Human-written source material (you add files here later)
-wiki/       ← LLM-generated knowledge (created by notewell-ingest)
-.notewell/  ← Derived cache (created when an index is built)
+knowledge-vault/
+├── raw/        ← Human-written source material (you add files here later)
+├── wiki/       ← LLM-generated knowledge (created by notewell-ingest)
+└── .notewell/  ← Derived cache (created when an index is built)
 ```
 
-Then create `wiki/index.md` and `wiki/log.md` as empty starter files (a single
-`# Index` / `# Log` heading is fine).
+Then create `knowledge-vault/wiki/index.md` and `knowledge-vault/wiki/log.md` as
+empty starter files (a single `# Index` / `# Log` heading is fine).
 
 ## Write GOVERNANCE.md
 
-Write the following to `GOVERNANCE.md` at the vault root **only if it does not
+Write the following to `knowledge-vault/GOVERNANCE.md` **only if it does not
 already exist**. This is the contract every other notewell skill reads. The
 default below follows the Karpathy LLM Wiki pattern (`raw/` immutable and flat,
 `wiki/sources/` mirrors raw paths). Tell the user they can edit any section to
@@ -136,7 +144,9 @@ Use stable, descriptive, kebab-case filenames. A common pattern:
 ## Completion
 
 1. List what was created and what was skipped because it already existed.
-2. Point the user to the next step: add source files under `raw/`, then run the
-   `notewell-ingest` skill to compile them into `wiki/`.
+2. Point the user to the next step: add source files under `knowledge-vault/raw/`,
+   then run the `notewell-ingest` skill to compile them into
+   `knowledge-vault/wiki/`.
 3. If the `notewell` CLI is available, mention `notewell index .` builds the
-   search index; otherwise the skills work on the Markdown files directly.
+   search index (it resolves `knowledge-vault/` under the given project root);
+   otherwise the skills work on the Markdown files directly.

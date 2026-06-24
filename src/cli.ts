@@ -22,6 +22,7 @@ import {
   searchOperation,
 } from "./core/operations.js";
 import { getSearchBackend } from "./core/search-backend.js";
+import { resolveVaultDir } from "./core/paths.js";
 import type { AssetRecord, SearchResult } from "./core/types.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -121,12 +122,13 @@ export async function run(argv: string[]): Promise<number> {
       process.stderr.write(`notewell: ${parsed.error}\n`);
       return 1;
     }
-    const result = initVault(parsed.vaultDir, {
+    const vaultDir = resolveVaultDir(parsed.vaultDir);
+    const result = initVault(vaultDir, {
       agents: parsed.agents,
       ...(parsed.guide ? { guide: parsed.guide } : {}),
     });
     process.stdout.write(
-      `Initialized notewell vault at ${parsed.vaultDir}\n` +
+      `Initialized notewell vault at ${vaultDir}\n` +
         `Created: ${result.created.length}\n` +
         `Skipped: ${result.skipped.length}\n`,
     );
@@ -192,7 +194,7 @@ export async function run(argv: string[]): Promise<number> {
   }
 
   if (command === "lint") {
-    const vaultDir = argv[1] ?? process.cwd();
+    const vaultDir = resolveVaultDir(argv[1] ?? process.cwd());
     const findings = lintOperation(vaultDir);
     for (const finding of findings) {
       process.stdout.write(
@@ -209,7 +211,7 @@ export async function run(argv: string[]): Promise<number> {
       return 1;
     }
     const entry = logOperation(
-      parsed.vaultDir,
+      resolveVaultDir(parsed.vaultDir),
       parsed.message,
       parsed.type ? { type: parsed.type } : {},
     );
@@ -218,7 +220,7 @@ export async function run(argv: string[]): Promise<number> {
   }
 
   if (command === "doctor") {
-    const vaultDir = argv[1] ?? process.cwd();
+    const vaultDir = resolveVaultDir(argv[1] ?? process.cwd());
     const checks = doctorOperation(vaultDir);
     for (const check of checks) {
       process.stdout.write(`${check.status}\t${check.name}\t${check.message}\n`);
@@ -420,7 +422,7 @@ function parseDirAndBackend(args: string[]): {
     remaining.splice(backendIndex, 2);
   }
   return {
-    vaultDir: remaining[0] ?? process.cwd(),
+    vaultDir: resolveVaultDir(remaining[0] ?? process.cwd()),
     backend,
   };
 }

@@ -7,6 +7,7 @@ import { describe, expect, test, vi } from "vitest";
 import { buildHelpText, run } from "../src/cli.js";
 import { initVault } from "../src/core/init.js";
 import { indexOperation } from "../src/core/operations.js";
+import { resolveVaultDir } from "../src/core/paths.js";
 
 describe("cli help", () => {
   test("prints available commands", () => {
@@ -21,7 +22,8 @@ describe("cli help", () => {
   });
 
   test("treats query as a search command alias", async () => {
-    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-query-"));
+    const projectRoot = mkdtempSync(path.join(tmpdir(), "notewell-cli-query-"));
+    const vaultDir = resolveVaultDir(projectRoot);
     initVault(vaultDir);
     writeFileSync(
       path.join(vaultDir, "wiki", "concept.md"),
@@ -54,7 +56,7 @@ describe("cli help", () => {
       });
 
     try {
-      const code = await run(["query", "retrieval", vaultDir]);
+      const code = await run(["query", "retrieval", projectRoot]);
 
       expect(code).toBe(0);
       expect(stdout).toContain("wiki/concept");
@@ -66,7 +68,8 @@ describe("cli help", () => {
   });
 
   test("formats search output for page and asset results", async () => {
-    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-search-"));
+    const projectRoot = mkdtempSync(path.join(tmpdir(), "notewell-cli-search-"));
+    const vaultDir = resolveVaultDir(projectRoot);
     initVault(vaultDir);
     mkdirSync(path.join(vaultDir, "raw", "assets"), { recursive: true });
     writeFileSync(
@@ -98,10 +101,10 @@ describe("cli help", () => {
       });
 
     try {
-      const searchCode = await run(["search", "architecture", vaultDir]);
+      const searchCode = await run(["search", "architecture", projectRoot]);
       const searchOutput = stdout;
       stdout = "";
-      const queryCode = await run(["query", "architecture", vaultDir]);
+      const queryCode = await run(["query", "architecture", projectRoot]);
 
       expect(searchCode).toBe(0);
       expect(queryCode).toBe(0);
@@ -121,7 +124,8 @@ describe("cli help", () => {
   });
 
   test("initializes selected agent skill adapters", async () => {
-    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-agents-"));
+    const projectRoot = mkdtempSync(path.join(tmpdir(), "notewell-cli-agents-"));
+    const vaultDir = resolveVaultDir(projectRoot);
 
     const code = await run([
       "init",
@@ -129,7 +133,7 @@ describe("cli help", () => {
       "claude",
       "--agent",
       "cursor",
-      vaultDir,
+      projectRoot,
     ]);
 
     expect(code).toBe(0);
@@ -146,9 +150,10 @@ describe("cli help", () => {
   });
 
   test("initializes a selected management guide", async () => {
-    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-guide-"));
+    const projectRoot = mkdtempSync(path.join(tmpdir(), "notewell-cli-guide-"));
+    const vaultDir = resolveVaultDir(projectRoot);
 
-    const code = await run(["init", "--guide", "general", vaultDir]);
+    const code = await run(["init", "--guide", "general", projectRoot]);
 
     expect(code).toBe(0);
     expect(
@@ -157,9 +162,10 @@ describe("cli help", () => {
   });
 
   test("runs onboard in yes mode", async () => {
-    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-onboard-"));
+    const projectRoot = mkdtempSync(path.join(tmpdir(), "notewell-cli-onboard-"));
+    const vaultDir = resolveVaultDir(projectRoot);
 
-    const code = await run(["onboard", "--yes", "--agent", "cursor", vaultDir]);
+    const code = await run(["onboard", "--yes", "--agent", "cursor", projectRoot]);
 
     expect(code).toBe(0);
     expect(
@@ -168,9 +174,10 @@ describe("cli help", () => {
   });
 
   test("runs onboard in yes mode with a selected management guide", async () => {
-    const vaultDir = mkdtempSync(path.join(tmpdir(), "notewell-cli-onboard-guide-"));
+    const projectRoot = mkdtempSync(path.join(tmpdir(), "notewell-cli-onboard-guide-"));
+    const vaultDir = resolveVaultDir(projectRoot);
 
-    const code = await run(["onboard", "--yes", "--guide", "general", vaultDir]);
+    const code = await run(["onboard", "--yes", "--guide", "general", projectRoot]);
 
     expect(code).toBe(0);
     expect(
