@@ -16,22 +16,29 @@ knowledge conflicts should be visible before they compound.
 
 ## Workflow
 
-1. Locate the current vault and `wiki/` directory.
+1. Read `GOVERNANCE.md` at the vault root to learn the expected `wiki/` layout,
+   Source Classification rule, and naming convention. Check against this
+   contract — not a hardcoded structure. If it is missing, tell the user to run
+   `notewell init .`.
 2. Read `wiki/index.md` and scan `wiki/**/*.md`.
 3. Run `notewell lint .` and read every finding.
 4. Report dead wikilinks, orphan pages, pages missing from `wiki/index.md`, stale
    `wiki/index.md` entries, invalid frontmatter, source gaps, and unresolved
    knowledge conflict sections.
-5. Treat `missing_asset_reference` as a warning that a wiki page points to an
+5. Check naming-convention compliance against the rule in `GOVERNANCE.md` (if it
+   defines one) and flag files that do not match.
+6. Treat `missing_asset_reference` as a warning that a wiki page points to an
    asset path that does not exist.
-6. By default, stay read-only. Do not modify, delete, rename, or reclassify files
+7. By default, stay read-only. Do not modify, delete, rename, or reclassify files
    while producing the health report.
-7. Only fix issues after the user explicitly confirms the repair.
+8. Only fix issues after the user explicitly confirms the repair.
 
-## Optional Inbox Checks
+## Source Coverage Check
 
-Default health checks focus on `wiki/`. If the user asks to inspect pending
-ingestion work, also scan `raw/`. Treat unreferenced media assets as yellow-light
+If the user asks to inspect pending ingestion work, scan `raw/` and identify
+files that do NOT have a corresponding source page under the path that the
+`GOVERNANCE.md` Source Classification rule maps them to. Report unmatched files
+as pending ingestion candidates. Treat unreferenced media assets as yellow-light
 findings only; never delete assets automatically.
 
 ## Report Format
@@ -47,6 +54,8 @@ Use this structure:
 ### 黄灯项
 - **发现 N 个孤儿页面**：[列表] - 建议添加关联或分类
 - **发现 N 个未同步索引**：[列表] - 文件存在但未在 index.md 注册
+- **发现 N 个未消化的原始文件**：[列表] - raw/ 中存在但缺少对应 source 页（仅在用户要求时检查）
+- **发现 N 个命名不规范的文件**：[列表] - 不符合 GOVERNANCE.md 命名约定
 
 ### 红灯项
 - **发现 N 个死链**：[来源页面] → [[不存在的目标页面]]

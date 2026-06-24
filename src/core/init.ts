@@ -36,6 +36,7 @@ type TemplateFile = {
 const TEMPLATE_FILES: readonly TemplateFile[] = [
   templateFile("AGENTS.md"),
   templateFile("CLAUDE.md"),
+  templateFile("GOVERNANCE.md"),
   templateFile("wiki/index.md"),
   templateFile("wiki/log.md"),
 ];

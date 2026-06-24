@@ -13,25 +13,25 @@ summarize a document. A good ingest creates searchable, linked knowledge that a
 human or LLM can use later.
 
 **Ingest is independent from `notewell-organize`.** You can — and should — ingest
-files that still live in `raw/inbox/`. Do not block ingestion on a prior
-organize step. Karpathy's LLM Wiki pattern keeps `raw/` immutable; the wiki
-layer (under `wiki/sources/<raw relative path>.md`) carries the structure.
+files wherever they live under `raw/`. Do not block ingestion on a prior
+organize step. `raw/` is immutable; the `wiki/` layer carries the structure.
 
 ## Before Writing
 
-1. Read `AGENTS.md` and, when present, `CLAUDE.md`.
-2. Confirm the ingestion scope. `/ingest` means scan eligible files under
-   `raw/` (including `raw/inbox/`); `/ingest <path>` means process only that
-   path.
-3. Treat implicit requests such as "ingest this into the knowledge base" or
+1. Read `GOVERNANCE.md` at the vault root. It is the source of truth for the
+   `wiki/` layout, how to classify a source page (Source Classification), and
+   the naming convention. If it is missing, stop and tell the user to run
+   `notewell init .`; do not guess the structure.
+2. Also read `AGENTS.md` and, when present, `CLAUDE.md` for agent guidance.
+3. Confirm the ingestion scope. `/ingest` means scan eligible files under
+   `raw/`; `/ingest <path>` means process only that path.
+4. Treat implicit requests such as "ingest this into the knowledge base" or
    "import this article" as ingestion. Do not persist ordinary summaries unless
    the user asks.
-4. Skip already-ingested raw files that have matching
-   `wiki/sources/<raw relative path>.md` pages.
-5. Treat `raw/` as immutable after source creation. Do not rewrite, move, or
-   archive source files unless the user explicitly asks. Files in
-   `raw/inbox/` ingest to `wiki/sources/inbox/<filename>.md` and stay in
-   `raw/inbox/` until the user separately asks to organize.
+5. Skip already-ingested raw files that already have the source page that
+   `GOVERNANCE.md` Source Classification maps them to.
+6. Treat `raw/` as immutable after source creation. Do not rewrite, move, or
+   archive source files unless the user explicitly asks.
 
 ## Compile Each Source
 
@@ -50,14 +50,15 @@ For every selected source file:
 
 ## Write Wiki Pages
 
-1. Create or update the source page at the mirror path
-   `wiki/sources/<raw relative path>.md`.
+1. Create or update the source page at the path given by the `GOVERNANCE.md`
+   Source Classification rule for this raw file.
 2. Use frontmatter fields `title`, `type`, `summary`, `tags`, `sources`, and
    `updated`.
 3. Make the source page useful on its own. Include a core summary, key points,
    entities and concepts, durable wikilinks, and open questions when relevant.
-4. Create or update durable concept, analysis, question, playbook, or domain
-   pages only when the source changes long-term knowledge.
+4. Create or update durable pages under the other `wiki/` subdirectories that
+   `GOVERNANCE.md` defines (e.g. concepts, analyses, questions) only when the
+   source changes long-term knowledge.
 5. Add source attribution and `## 关联连接` or an equivalent durable links
    section to every wiki page you create or expand.
 

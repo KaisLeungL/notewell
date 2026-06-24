@@ -15,10 +15,14 @@ knowledge base".
 
 ## Retrieval Workflow
 
-1. Read `AGENTS.md` and, when present, `CLAUDE.md`.
+1. Read `GOVERNANCE.md` at the vault root to learn the `wiki/` layout and how
+   source pages are classified, then read `AGENTS.md` and, when present,
+   `CLAUDE.md`. If `GOVERNANCE.md` is missing, tell the user to run
+   `notewell init .`.
 2. Identify the user's question and preserve the original wording.
-3. Read `wiki/index.md` first. Use it to locate relevant sources, concepts,
-   analyses, questions, playbooks, projects, and domain pages.
+3. Read `wiki/index.md` first. Use it to locate relevant source pages and the
+   durable pages defined in `GOVERNANCE.md` (e.g. concepts, analyses,
+   questions).
 4. If `.notewell/index.json` is missing or stale, run `notewell index .` before
    relying on search.
 5. Run `notewell query "<question>" .` or `notewell search "<question>" .` as a
@@ -46,9 +50,10 @@ knowledge base".
 ## Durable Write Back
 
 When the answer is valuable for future retrieval, ask whether to save it before
-writing. Offer to file reusable answers under `wiki/questions/`, synthesized
-analysis under `wiki/analyses/`, and repeatable procedures under
-`wiki/playbooks/`.
+writing. Offer to file it under the appropriate `wiki/` subdirectory defined in
+`GOVERNANCE.md` (for example: reusable answers under `wiki/questions/`,
+synthesized analysis under `wiki/analyses/`, repeatable procedures under
+`wiki/playbooks/`).
 
 If the user already asked to save, persist, write, or file the answer, write it
 without asking again. Use frontmatter fields `title`, `type`, `summary`, `tags`,

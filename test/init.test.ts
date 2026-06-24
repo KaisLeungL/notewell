@@ -39,10 +39,14 @@ describe("initVault", () => {
         ".notewell",
         "AGENTS.md",
         "CLAUDE.md",
+        "GOVERNANCE.md",
         "wiki/index.md",
         "wiki/log.md",
       ]),
     );
+    expect(
+      readFileSync(path.join(vaultDir, "GOVERNANCE.md"), "utf8"),
+    ).toContain("Source Classification");
     expect(result.created).not.toContain("schema");
     expect(existsSync(path.join(vaultDir, "schema"))).toBe(false);
   });

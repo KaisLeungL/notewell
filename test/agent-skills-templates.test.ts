@@ -63,9 +63,9 @@ describe("agent skill templates", () => {
     const template = readSkill("notewell-ingest");
 
     expect(template).toContain("AGENTS.md");
+    expect(template).toContain("GOVERNANCE.md");
     expect(template).toContain("raw/");
-    expect(template).toContain("wiki/sources/");
-    expect(template).toContain("wiki/sources/<raw relative path>.md");
+    expect(template).toContain("Source Classification");
     expect(template).toContain("core thesis");
     expect(template).toContain("aliases, alt text, or link text");
     expect(template).toContain("without OCR");
@@ -95,7 +95,7 @@ describe("agent skill templates", () => {
     const template = readSkill("notewell-organize");
 
     expect(template).toContain("name: notewell-organize");
-    expect(template).toContain("raw/inbox/");
+    expect(template).toContain("GOVERNANCE.md");
     expect(template).toContain("proposed move/rename plan");
     expect(template).toContain("Ask the user to approve");
     expect(template).toContain("Never delete raw files automatically");

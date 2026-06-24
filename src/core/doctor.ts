@@ -5,7 +5,7 @@ import { isMarkdownFile } from "./paths.js";
 import { requiredVaultDirs } from "./paths.js";
 import type { DoctorCheck } from "./types.js";
 
-const REQUIRED_ROOT_FILES = ["AGENTS.md", "CLAUDE.md"] as const;
+const REQUIRED_ROOT_FILES = ["AGENTS.md", "CLAUDE.md", "GOVERNANCE.md"] as const;
 const REQUIRED_WIKI_FILES = ["index.md", "log.md"] as const;
 
 export function doctorVault(vaultDir: string): DoctorCheck[] {
